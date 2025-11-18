@@ -1,0 +1,38 @@
+class KhoaHoc {
+  final int maKhoaHoc;
+  final String tenKhoaHoc;
+  final String ngayHoc;
+  final double hocPhi;
+  final bool daYeuThich;
+  final int? tongLuotQuanTam;      // nullable
+  final int? tongLuotBinhLuan;     // nullable
+  final double? soSaoTrungBinh;    // nullable
+  final String? hinhAnhUrl;
+
+
+  KhoaHoc({
+    required this.maKhoaHoc,
+    required this.tenKhoaHoc,
+    required this.ngayHoc,
+    required this.hocPhi,
+    required this.daYeuThich,
+    this.tongLuotQuanTam,
+    this.tongLuotBinhLuan,
+    this.soSaoTrungBinh,
+    this.hinhAnhUrl,
+  });
+
+  factory KhoaHoc.fromJson(Map<String, dynamic> json) {
+    return KhoaHoc(
+      maKhoaHoc: json['maKhoaHoc'] ?? 0,
+      tenKhoaHoc: json['tenKhoaHoc'] ?? '',
+      ngayHoc: json['ngayHoc'] ?? '',
+      hocPhi: (json['hocPhi'] as num?)?.toDouble() ?? 0.0,
+      daYeuThich: json['daYeuThich'] ?? false,
+      tongLuotQuanTam: json['tongLuotQuanTam'] ?? 0,
+      tongLuotBinhLuan: json['tongLuotBinhLuan'] ?? 0,
+      soSaoTrungBinh: (json['soSaoTrungBinh'] as num?)?.toDouble() ?? 0.0,
+      hinhAnhUrl: json['hinhAnh'],
+    );
+  }
+}
