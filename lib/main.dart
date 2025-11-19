@@ -1,3 +1,4 @@
+import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
 import 'package:do_an_chuyen_nganh/screens/student/student_home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
     final isLoggedIn = await AuthService.isLoggedIn();
     if (isLoggedIn ) {
 
-      return const StudentHomeScreen();
+      return const DashboardScreen();
     } else {
       return const LoginScreen();
     }

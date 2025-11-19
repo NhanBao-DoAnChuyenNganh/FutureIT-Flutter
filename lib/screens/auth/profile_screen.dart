@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
+import 'package:do_an_chuyen_nganh/screens/student/student_home.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -97,8 +99,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         await prefs.setString(
             'avatarBase64', 'data:image/png;base64,${base64Encode(bytes)}');
       }
+
+      // 🔹 Điều hướng về StudentHome sau khi lưu thành công
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+              (route) => false,
+        );
+      }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

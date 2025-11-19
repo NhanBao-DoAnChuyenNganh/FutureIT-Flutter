@@ -5,6 +5,8 @@ import '../../models/khoa_hoc.dart';
 import '../../services/khoa_hoc_student_service.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/khoa_hoc_card.dart';
+import '../../widgets/user_header_widget.dart';
+import '../../widgets/search_and_filter_widget.dart';
 import '../auth/login_screen.dart';
 import '../auth/profile_screen.dart';
 
@@ -46,23 +48,12 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
       'diaChi': prefs.getString('diaChi') ?? '',
       'avatarBase64': prefs.getString('avatarBase64') ?? '',
     };
-    avatarBase64 = userData['avatarBase64']!;
+    avatarBase64 = userData['avatarBase64'] ?? '';
 
     // Load khóa học
     listKhoaHoc = await KhoaHocService.getAllKhoaHoc();
 
     setState(() => loading = false);
-  }
-
-  ImageProvider get avatarImage {
-    if (avatarBase64.isNotEmpty) {
-      try {
-        return MemoryImage(base64Decode(avatarBase64.split(',').last));
-      } catch (_) {
-        return const AssetImage('assets/avatar.png');
-      }
-    }
-    return const AssetImage('assets/avatar.png');
   }
 
   Future<void> _logout() async {
@@ -97,82 +88,25 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            CircleAvatar(radius: 18, backgroundImage: avatarImage),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                userData['username'] ?? 'Người dùng',
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
+        title: UserAppBarWidget(
+          username: userData['username'] ?? 'Người dùng',
+          email: userData['email'] ?? '',
+          sdt: userData['sdt'] ?? '',
+          diaChi: userData['diaChi'] ?? '',
+          avatarBase64: avatarBase64,
+          onLogout: _logout,
         ),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
-              if (value == 'profile') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ProfileScreen(
-                      email: userData['email'] ?? '',
-                      username: userData['username'] ?? '',
-                      sdt: userData['sdt'] ?? '',
-                      diaChi: userData['diaChi'] ?? '',
-                      avatarBase64: avatarBase64,
-                    ),
-                  ),
-                );
-              } else if (value == 'logout') {
-                _logout();
-              }
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'profile', child: Text('Hồ sơ cá nhân')),
-              PopupMenuItem(value: 'logout', child: Text('Đăng xuất')),
-            ],
-          )
-        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Tìm tên khóa học',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: _searchOrFilter,
-                      ),
-                    ),
-                    onChanged: (val) => searchText = val,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.filter_list),
-                  onSelected: (value) {
-                    setState(() => typeFilter = value);
-                    _searchOrFilter();
-                  },
-                  itemBuilder: (_) => const [
-                    PopupMenuItem(value: '', child: Text('Tất cả loại')),
-                    PopupMenuItem(value: 'C++', child: Text('C++')),
-                    PopupMenuItem(value: 'Java', child: Text('Java')),
-                    PopupMenuItem(value: 'Python', child: Text('Python')),
-                  ],
-                ),
-              ],
-            ),
+          child: SearchAndFilterWidget(
+            searchText: searchText,
+            onSearchChanged: (val) => searchText = val,
+            onSearchPressed: _searchOrFilter,
+            typeFilter: typeFilter,
+            onTypeSelected: (val) {
+              setState(() => typeFilter = val);
+              _searchOrFilter();
+            },
           ),
         ),
       ),

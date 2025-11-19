@@ -1,3 +1,4 @@
+import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
 import 'package:do_an_chuyen_nganh/screens/student/student_home.dart';
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
@@ -76,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
     Widget nextScreen;
     switch (role) {
       case 'Student':
-        nextScreen = StudentHomeScreen();
+        nextScreen = DashboardScreen();
         break;
       default:
         nextScreen = const HomeScreen();
