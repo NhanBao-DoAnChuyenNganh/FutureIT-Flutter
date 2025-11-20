@@ -35,12 +35,36 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     super.initState();
     _loadData();
   }
+  Future<void> saveKhoaHocCache(List<KhoaHoc> data) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('cache_khoa_hoc', jsonEncode(data.map((e) => e.toJson()).toList()));
+    prefs.setInt('cache_time_khoa_hoc', DateTime.now().millisecondsSinceEpoch);
+  }
+
+  Future<List<KhoaHoc>?> loadKhoaHocCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString('cache_khoa_hoc');
+
+    if (jsonString == null) return null;
+
+    final decoded = jsonDecode(jsonString);
+    return List<KhoaHoc>.from(decoded.map((e) => KhoaHoc.fromJson(e)));
+  }
+  Future<bool> isKhoaHocCacheExpired() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedTime = prefs.getInt('cache_time_khoa_hoc') ?? 0;
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    const cacheLimit = 30 * 60 * 1000; // 30 phút
+    return (now - savedTime) > cacheLimit;
+  }
 
   Future<void> _loadData() async {
     setState(() => loading = true);
 
-    // Load user
     final prefs = await SharedPreferences.getInstance();
+
+    // Load user
     userData = {
       'username': prefs.getString('username') ?? 'Người dùng',
       'email': prefs.getString('email') ?? '',
@@ -50,11 +74,30 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     };
     avatarBase64 = userData['avatarBase64'] ?? '';
 
-    // Load khóa học
-    listKhoaHoc = await KhoaHocService.getAllKhoaHoc();
+    // ---------- LOAD CACHE TRƯỚC ----------
+    final cache = await loadKhoaHocCache();
+    final expired = await isKhoaHocCacheExpired();
+
+    if (cache != null && !expired) {
+      // Có cache và chưa hết hạn → load cache
+      listKhoaHoc = cache;
+      setState(() => loading = false);
+    }
+
+    // ---------- GỌI API SAU ----------
+    try {
+      final apiData = await KhoaHocService.getAllKhoaHoc();
+      listKhoaHoc = apiData;
+
+      // lưu cache lại
+      await saveKhoaHocCache(apiData);
+    } catch (e) {
+      print("Lỗi API: $e");
+    }
 
     setState(() => loading = false);
   }
+
 
   Future<void> _logout() async {
     await AuthService.logout();

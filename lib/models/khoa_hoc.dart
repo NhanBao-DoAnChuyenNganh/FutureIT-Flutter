@@ -4,11 +4,10 @@ class KhoaHoc {
   final String ngayHoc;
   final double hocPhi;
   final bool daYeuThich;
-  final int? tongLuotQuanTam;      // nullable
-  final int? tongLuotBinhLuan;     // nullable
-  final double? soSaoTrungBinh;    // nullable
+  final int? tongLuotQuanTam;
+  final int? tongLuotBinhLuan;
+  final double? soSaoTrungBinh;
   final String? hinhAnhUrl;
-
 
   KhoaHoc({
     required this.maKhoaHoc,
@@ -34,5 +33,19 @@ class KhoaHoc {
       soSaoTrungBinh: (json['soSaoTrungBinh'] as num?)?.toDouble() ?? 0.0,
       hinhAnhUrl: json['hinhAnh'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'maKhoaHoc': maKhoaHoc,
+      'tenKhoaHoc': tenKhoaHoc,
+      'ngayHoc': ngayHoc,
+      'hocPhi': hocPhi,
+      'daYeuThich': daYeuThich,
+      'tongLuotQuanTam': tongLuotQuanTam,
+      'tongLuotBinhLuan': tongLuotBinhLuan,
+      'soSaoTrungBinh': soSaoTrungBinh,
+      'hinhAnh': hinhAnhUrl,
+    };
   }
 }

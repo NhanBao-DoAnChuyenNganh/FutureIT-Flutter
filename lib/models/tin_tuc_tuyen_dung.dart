@@ -25,4 +25,15 @@ class TinTucTuyenDung {
       hinhAnh: json['hinhAnh'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'maTinTuc': maTinTuc,
+      'tieuDeTinTuc': tieuDeTinTuc,
+      'noiDung': noiDung,
+      'ngayDang': ngayDang.toIso8601String(),
+      'ngayKetThuc': ngayKetThuc.toIso8601String(),
+      'hinhAnh': hinhAnh,
+    };
+  }
 }

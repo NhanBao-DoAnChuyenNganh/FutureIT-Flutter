@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/tin_tuc_tuyen_dung.dart';
 import '../../services/tin_tuc_service.dart';
 
@@ -12,10 +15,65 @@ class TinTucScreen extends StatefulWidget {
 class _TinTucScreenState extends State<TinTucScreen> {
   late Future<List<TinTucTuyenDung>> _futureTinTuc;
 
+
+  Future<void> saveTinTucCache(List<TinTucTuyenDung> data) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(
+      'cache_tin_tuc',
+      jsonEncode(data.map((e) => e.toJson()).toList()),
+    );
+    prefs.setInt('cache_time_tin_tuc', DateTime.now().millisecondsSinceEpoch);
+  }
+  Future<List<TinTucTuyenDung>?> loadTinTucCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString('cache_tin_tuc');
+
+    if (jsonString == null) return null;
+
+    final decoded = jsonDecode(jsonString);
+    return List<TinTucTuyenDung>.from(
+        decoded.map((e) => TinTucTuyenDung.fromJson(e)));
+  }
+  Future<bool> isTinTucCacheExpired() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedTime = prefs.getInt('cache_time_tin_tuc') ?? 0;
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    const cacheLimit = 30 * 60 * 1000; // 30 phút
+    return (now - savedTime) > cacheLimit;
+  }
+  Future<List<TinTucTuyenDung>> _loadTinTuc() async {
+    // Load cache trước
+    final cache = await loadTinTucCache();
+    final expired = await isTinTucCacheExpired();
+
+    if (cache != null && !expired) {
+      return cache;
+    }
+
+    try {
+      final apiData = await TinTucService.getAllTinTuc();
+
+      // Chỉ lưu khi API có dữ liệu
+      if (apiData.isNotEmpty) {
+        await saveTinTucCache(apiData);
+      }
+
+      return apiData;
+    } catch (e) {
+      print("Lỗi API: $e");
+
+      // Nếu API lỗi → vẫn trả cache
+      if (cache != null) return cache;
+
+      throw Exception("Không thể tải tin tức");
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    _futureTinTuc = TinTucService.getAllTinTuc();
+    _futureTinTuc = _loadTinTuc();
   }
 
   @override
@@ -86,11 +144,7 @@ class _TinTucScreenState extends State<TinTucScreen> {
                               style: const TextStyle(color: Colors.redAccent),
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              tin.noiDung,
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+
                           ],
                         ),
                       ),
@@ -128,19 +182,23 @@ class ChiTietTinScreen extends StatelessWidget {
                 fit: BoxFit.cover,
               ),
             const SizedBox(height: 12),
+
             Text(
               "Ngày đăng: ${tin.ngayDang.day}/${tin.ngayDang.month}/${tin.ngayDang.year}",
               style: const TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 4),
+
             Text(
               "Ngày ngừng tuyển dụng: ${tin.ngayKetThuc.day}/${tin.ngayKetThuc.month}/${tin.ngayKetThuc.year}",
               style: const TextStyle(color: Colors.redAccent),
             ),
+
             const SizedBox(height: 16),
-            Text(
-              tin.noiDung,
-              style: const TextStyle(fontSize: 16),
+
+            // ⭐ Render HTML CKEditor
+            Html(
+              data: tin.noiDung,
             ),
           ],
         ),
