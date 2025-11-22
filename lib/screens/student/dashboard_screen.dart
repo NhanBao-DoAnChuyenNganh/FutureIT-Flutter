@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../student/student_home.dart';
 import '../student/about_screen.dart';
 import '../student/tin_tuc_tuyen_dung_screen.dart';
-
+import '../student/danh_sach_quan_tam_screen.dart';
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -18,6 +18,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     StudentHomeScreen(),
     AboutScreen(),
     TinTucScreen(),
+    DanhSachQuanTamScreen(),
   ];
 
   @override
@@ -46,6 +47,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.newspaper),
             label: 'Tin tức tuyển dụng',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite_border),
+            label: 'Quan tâm',
           ),
         ],
       ),

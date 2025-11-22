@@ -48,4 +48,20 @@ class KhoaHoc {
       'hinhAnh': hinhAnhUrl,
     };
   }
+  KhoaHoc copyWith({
+    bool? daYeuThich,
+    int? tongLuotQuanTam,
+  }) {
+    return KhoaHoc(
+      maKhoaHoc: maKhoaHoc,
+      tenKhoaHoc: tenKhoaHoc,
+      ngayHoc: ngayHoc,
+      hocPhi: hocPhi,
+      daYeuThich: daYeuThich ?? this.daYeuThich,
+      tongLuotQuanTam: tongLuotQuanTam ?? this.tongLuotQuanTam,
+      tongLuotBinhLuan: tongLuotBinhLuan,
+      soSaoTrungBinh: soSaoTrungBinh,
+      hinhAnhUrl: hinhAnhUrl,
+    );
+  }
 }

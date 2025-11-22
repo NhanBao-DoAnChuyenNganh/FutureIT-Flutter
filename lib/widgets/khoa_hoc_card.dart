@@ -20,45 +20,32 @@ class KhoaHocCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Ảnh khóa học
-          Stack(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  // Chuyển tới ChiTietKhoaHocScreen
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChiTietKhoaHocScreen(maKhoaHoc: khoaHoc.maKhoaHoc),
-                    ),
-                  );
-                },
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                  child: imgUrl != null && imgUrl.isNotEmpty
-                      ? Image.network(
-                    imgUrl,
-                    height: 100,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  )
-                      : Image.asset(
-                    'assets/avatar.png',
-                    height: 100,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChiTietKhoaHocScreen(maKhoaHoc: khoaHoc.maKhoaHoc),
                 ),
+              );
+            },
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+              child: imgUrl != null && imgUrl.isNotEmpty
+                  ? Image.network(
+                imgUrl,
+                height: 100,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              )
+                  : Image.asset(
+                'assets/avatar.png',
+                height: 100,
+                width: double.infinity,
+                fit: BoxFit.cover,
               ),
-              if (khoaHoc.daYeuThich)
-                const Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Icon(Icons.favorite, color: Colors.red),
-                ),
-            ],
+            ),
           ),
-          // Thông tin khóa học
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -84,12 +71,9 @@ class KhoaHocCard extends StatelessWidget {
                   style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('${khoaHoc.tongLuotQuanTam ?? 0} yêu thích', style: const TextStyle(fontSize: 12)),
-                    Text('${khoaHoc.tongLuotBinhLuan ?? 0} đánh giá', style: const TextStyle(fontSize: 12)),
-                  ],
+                Text(
+                  '${khoaHoc.tongLuotBinhLuan ?? 0} đánh giá',
+                  style: const TextStyle(fontSize: 12),
                 ),
                 const SizedBox(height: 8),
                 ElevatedButton(

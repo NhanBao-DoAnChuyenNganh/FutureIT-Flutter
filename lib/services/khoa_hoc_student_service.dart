@@ -146,12 +146,24 @@ class KhoaHocService {
 // POST toggle yêu thích
   static Future<bool> toggleYeuThich(int maKhoaHoc) async {
     final url = Uri.parse('${AuthService.baseUrl}api/StudentHomeApi/ToggleQuanTam');
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? '';
+
     print('🔹 POST ToggleQuanTam URL: $url');
-    print('🔹 Payload: $maKhoaHoc');
+    print('🔹 Token: $token');
+
+    if (token.isEmpty) {
+      print('⚠️ Chưa đăng nhập');
+      return false;
+    }
 
     final response = await http.post(
       url,
-      headers: {"Content-Type": "application/json"},
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
       body: jsonEncode(maKhoaHoc),
     );
 
@@ -161,23 +173,36 @@ class KhoaHocService {
     return response.statusCode == 200;
   }
 
+
 // GET danh sách quan tâm
   static Future<List<KhoaHoc>> getDanhSachQuanTam() async {
     final url = Uri.parse('${AuthService.baseUrl}api/StudentHomeApi/GetDanhSachQuanTam');
-    print('🔹 GET GetDanhSachQuanTam URL: $url');
 
-    final response = await http.get(url, headers: {"Content-Type": "application/json"});
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? '';
+
+    print('🔹 GET GetDanhSachQuanTam URL: $url');
+    print('🔹 Token: $token');
+
+    final response = await http.get(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
     print('🔹 Status code: ${response.statusCode}');
     print('🔹 Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as List<dynamic>;
-      print('🔹 Received ${data.length} items');
       return data.map((e) => KhoaHoc.fromJson(e)).toList();
     } else {
       throw Exception('Failed to load danh sách quan tâm');
     }
   }
 
-
 }
+
+

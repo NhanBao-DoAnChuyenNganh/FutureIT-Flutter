@@ -18,18 +18,21 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
   bool loading = true;
   int selectedImageIndex = 0;
   int selectedStar = 0;
+  bool daQuanTam = false;
   TextEditingController noiDungController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadChiTiet();
+    _loadTrangThaiQuanTam();
   }
 
+  // ---------------- CACHE -----------------
   Future<void> saveChiTietCache(ChiTietKhoaHoc data) async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString('cache_chi_tiet_${data.maKhoaHoc}', jsonEncode(data.toJson()));
-    prefs.setInt('cache_time_chi_tiet_${data.maKhoaHoc}', DateTime.now().millisecondsSinceEpoch);
+    await prefs.setString('cache_chi_tiet_${data.maKhoaHoc}', jsonEncode(data.toJson()));
+    await prefs.setInt('cache_time_chi_tiet_${data.maKhoaHoc}', DateTime.now().millisecondsSinceEpoch);
   }
 
   Future<ChiTietKhoaHoc?> loadChiTietCache(int maKhoaHoc) async {
@@ -48,31 +51,84 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
     return (now - savedTime) > cacheLimit;
   }
 
+  // ---------------- LOAD CHI TIẾT -----------------
   Future<void> _loadChiTiet() async {
     setState(() => loading = true);
 
-    // Kiểm tra cache trước
+    // Load cache trước
     final cache = await loadChiTietCache(widget.maKhoaHoc);
     final expired = await isChiTietCacheExpired(widget.maKhoaHoc);
-    if (cache != null && !expired) {
+    if (cache != null && !expired && mounted) {
       setState(() {
         chiTiet = cache;
         loading = false;
       });
     }
 
-    // Gọi API và cập nhật cache
     try {
       final data = await KhoaHocService.getChiTietKhoaHoc(widget.maKhoaHoc);
+      if (!mounted) return;
       setState(() => chiTiet = data);
+
+      // Lưu cache
       await saveChiTietCache(data);
     } catch (e) {
       print("Lỗi tải chi tiết khóa học: $e");
     }
 
+    if (!mounted) return;
     setState(() => loading = false);
   }
 
+  // ---------------- LOAD TRẠNG THÁI QUAN TÂM -----------------
+  Future<void> _loadTrangThaiQuanTam() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Lấy cache trước
+    final cached = prefs.getBool('cache_daQuanTam_${widget.maKhoaHoc}');
+    if (cached != null && mounted) {
+      setState(() {
+        daQuanTam = cached;
+      });
+    }
+
+    try {
+      final dsQuanTam = await KhoaHocService.getDanhSachQuanTam();
+      final isQuanTam = dsQuanTam.any((k) => k.maKhoaHoc == widget.maKhoaHoc);
+      if (!mounted) return;
+      setState(() {
+        daQuanTam = isQuanTam;
+      });
+
+      // Lưu cache
+      await prefs.setBool('cache_daQuanTam_${widget.maKhoaHoc}', isQuanTam);
+    } catch (e) {
+      print("Lỗi tải trạng thái quan tâm: $e");
+    }
+  }
+
+  // ---------------- TOGGLE QUAN TÂM -----------------
+  Future<void> _toggleQuanTam() async {
+    final success = await KhoaHocService.toggleYeuThich(widget.maKhoaHoc);
+    if (!mounted) return;
+    if (success) {
+      setState(() {
+        daQuanTam = !daQuanTam;
+      });
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('cache_daQuanTam_${widget.maKhoaHoc}', daQuanTam);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(daQuanTam ? 'Đã quan tâm khóa học' : 'Bỏ quan tâm')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lỗi, vui lòng thử lại')),
+      );
+    }
+  }
+
+  // ---------------- GỬI ĐÁNH GIÁ -----------------
   Future<void> _sendDanhGia() async {
     if (chiTiet == null) return;
     if (selectedStar == 0 || noiDungController.text.isEmpty) {
@@ -86,13 +142,14 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
       soSao: selectedStar,
       noiDung: noiDungController.text,
     );
+    if (!mounted) return;
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Gửi đánh giá thành công')),
       );
       noiDungController.clear();
       selectedStar = 0;
-      _loadChiTiet(); // reload chi tiết để cập nhật đánh giá
+      _loadChiTiet(); // reload chi tiết để cập nhật đánh giá và lượt đánh giá
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Gửi đánh giá thất bại')),
@@ -100,6 +157,7 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
     }
   }
 
+  // ---------------- BUILD -----------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -112,7 +170,6 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Ảnh chính và thumbnail
             if (chiTiet!.hinhAnh.isNotEmpty)
               Column(
                 children: [
@@ -162,7 +219,8 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
                   const SizedBox(height: 8),
                   Text("Ngày học: ${chiTiet!.ngayHoc}"),
                   Text("Giờ: ${chiTiet!.gioBatDau} - ${chiTiet!.gioKetThuc}"),
-                  Text("Học phí: ${chiTiet!.hocPhi.toStringAsFixed(0)} VND", style: const TextStyle(color: Colors.red)),
+                  Text("Học phí: ${chiTiet!.hocPhi.toStringAsFixed(0)} VND",
+                      style: const TextStyle(color: Colors.red)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -175,31 +233,26 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
                   Text("Mô tả:", style: const TextStyle(fontWeight: FontWeight.bold)),
                   Text(chiTiet!.moTa),
                   const SizedBox(height: 16),
-                  const Divider(),
-                  const Text("Đánh giá khóa học", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  ...chiTiet!.danhGia.map((dg) => Card(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: dg.avatarBase64.isNotEmpty
-                            ? MemoryImage(base64Decode(dg.avatarBase64))
-                            : null,
-                      ),
-                      title: Text(dg.user),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildStarRating(dg.soSaoDanhGia.toDouble()),
-                          Text(dg.noiDungDanhGia),
-                          Text(dg.ngayDanhGia, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                        ],
-                      ),
+
+                  // Nút quan tâm
+                  ElevatedButton.icon(
+                    onPressed: _toggleQuanTam,
+                    icon: Icon(daQuanTam ? Icons.favorite : Icons.favorite_border),
+                    label: Text(daQuanTam ? 'Đã quan tâm' : 'Quan tâm khóa học này'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: daQuanTam ? Colors.red : Colors.grey,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                  )),
+                  ),
+                  const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 8),
-                  const Text("Gửi đánh giá của bạn", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+
+                  // Gửi đánh giá lên trên
+                  const Text("Gửi đánh giá của bạn",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   _StarInput(onSelected: (val) => selectedStar = val),
                   const SizedBox(height: 8),
                   TextField(
@@ -215,6 +268,47 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
                     onPressed: _sendDanhGia,
                     icon: const Icon(Icons.send),
                     label: const Text("Gửi đánh giá"),
+                  ),
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 8),
+
+                  // Hiển thị đánh giá
+                  chiTiet!.danhGia.isEmpty
+                      ? Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      "Khóa học hiện chưa có đánh giá",
+                      style: TextStyle(
+                          color: Colors.blueGrey, fontStyle: FontStyle.italic),
+                    ),
+                  )
+                      : Column(
+                    children: chiTiet!.danhGia
+                        .map(
+                          (dg) => Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        child: ListTile(
+                          leading: dg.avatarBase64.isNotEmpty
+                              ? CircleAvatar(
+                              backgroundImage:
+                              MemoryImage(base64Decode(dg.avatarBase64)))
+                              : null,
+                          title: Text(dg.user),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildStarRating(dg.soSaoDanhGia.toDouble()),
+                              Text(dg.noiDungDanhGia),
+                              Text(dg.ngayDanhGia,
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Colors.grey)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                        .toList(),
                   ),
                 ],
               ),
@@ -254,7 +348,8 @@ class _StarInputState extends State<_StarInput> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(5, (i) {
         return IconButton(
-          icon: Icon(i < selected ? Icons.star : Icons.star_border, color: Colors.amber, size: 32),
+          icon: Icon(i < selected ? Icons.star : Icons.star_border,
+              color: Colors.amber, size: 32),
           onPressed: () {
             setState(() => selected = i + 1);
             widget.onSelected(selected);
