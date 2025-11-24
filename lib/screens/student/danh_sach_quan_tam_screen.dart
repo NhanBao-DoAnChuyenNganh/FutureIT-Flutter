@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'package:do_an_chuyen_nganh/screens/auth/login_screen.dart';
+import 'package:do_an_chuyen_nganh/services/auth_service.dart';
+import 'package:do_an_chuyen_nganh/widgets/user_header_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/khoa_hoc.dart';
@@ -15,11 +18,36 @@ class DanhSachQuanTamScreen extends StatefulWidget {
 class _DanhSachQuanTamScreenState extends State<DanhSachQuanTamScreen> {
   List<KhoaHoc> listQuanTam = [];
   bool loading = true;
-
+  Map<String, String> userData = {};
+  String avatarBase64 = '';
   @override
   void initState() {
     super.initState();
+    _loadUser();
     _loadDanhSachQuanTam();
+  }
+
+  Future<void> _loadUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    userData = {
+      'username': prefs.getString('username') ?? 'Người dùng',
+      'email': prefs.getString('email') ?? '',
+      'sdt': prefs.getString('sdt') ?? '',
+      'diaChi': prefs.getString('diaChi') ?? '',
+      'avatarBase64': prefs.getString('avatarBase64') ?? '',
+    };
+    avatarBase64 = userData['avatarBase64'] ?? '';
+    setState(() {});
+  }
+
+  Future<void> _logout() async {
+    await AuthService.logout();
+    if (context.mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+            (route) => false,
+      );
+    }
   }
 
   Future<void> saveQuanTamCache(List<KhoaHoc> data) async {
@@ -94,7 +122,16 @@ class _DanhSachQuanTamScreenState extends State<DanhSachQuanTamScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Danh sách quan tâm')),
+      appBar: AppBar(
+        title: UserAppBarWidget(
+          username: userData['username'] ?? 'Người dùng',
+          email: userData['email'] ?? '',
+          sdt: userData['sdt'] ?? '',
+          diaChi: userData['diaChi'] ?? '',
+          avatarBase64: avatarBase64,
+          onLogout: _logout,
+        ),
+      ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : listQuanTam.isEmpty

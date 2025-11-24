@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 import '../models/khoa_hoc.dart';
 import '../models/chi_tiet_khoa_hoc.dart';
+import '../models/teacher.dart';
 class KhoaHocService {
   static Future<List<KhoaHoc>> getAllKhoaHoc() async {
     final url = Uri.parse('${AuthService.baseUrl}api/StudentHomeApi/GetKhoaHoc');
@@ -200,6 +201,25 @@ class KhoaHocService {
       return data.map((e) => KhoaHoc.fromJson(e)).toList();
     } else {
       throw Exception('Failed to load danh sách quan tâm');
+    }
+  }
+  static Future<List<Teacher>> getTeachers() async {
+    final url = Uri.parse('${AuthService.baseUrl}api/StudentHomeApi/GetTeacher');
+
+    print("🔹 GET Teacher: $url");
+
+    final response = await http.get(url, headers: {
+      "Content-Type": "application/json",
+    });
+
+    print("🔹 Status: ${response.statusCode}");
+    print("🔹 Body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final list = jsonDecode(response.body) as List;
+      return list.map((e) => Teacher.fromJson(e)).toList();
+    } else {
+      throw Exception("Failed to load teachers");
     }
   }
 

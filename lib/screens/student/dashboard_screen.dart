@@ -4,6 +4,7 @@ import '../student/student_home.dart';
 import '../student/about_screen.dart';
 import '../student/tin_tuc_tuyen_dung_screen.dart';
 import '../student/danh_sach_quan_tam_screen.dart';
+import '../student/teacher_list_screen.dart';
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -19,6 +20,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     AboutScreen(),
     TinTucScreen(),
     DanhSachQuanTamScreen(),
+    TeacherScreen(),
   ];
 
   @override
@@ -45,13 +47,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             label: 'Về chúng tôi',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.newspaper),
+            icon: Icon(Icons.work_outline),
             label: 'Tin tức tuyển dụng',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_border),
             label: 'Quan tâm',
           ),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.cast_for_education),
+              label: 'Giáo viên'),
         ],
       ),
     );

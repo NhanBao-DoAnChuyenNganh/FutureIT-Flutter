@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/chi_tiet_khoa_hoc.dart';
 import '../../services/khoa_hoc_student_service.dart';
@@ -231,7 +232,7 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text("Mô tả:", style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text(chiTiet!.moTa),
+                  Html(data: chiTiet!.moTa),
                   const SizedBox(height: 16),
 
                   // Nút quan tâm
