@@ -7,14 +7,14 @@ import '../../widgets/user_header_widget.dart';
 import '../auth/login_screen.dart';
 import '../../services/auth_service.dart';
 
-class TeacherScreen extends StatefulWidget {
-  const TeacherScreen({super.key});
+class TeacherListScreen extends StatefulWidget {
+  const TeacherListScreen({super.key});
 
   @override
-  State<TeacherScreen> createState() => _TeacherScreenState();
+  State<TeacherListScreen> createState() => _TeacherListScreenState();
 }
 
-class _TeacherScreenState extends State<TeacherScreen> {
+class _TeacherListScreenState extends State<TeacherListScreen> {
   late Future<List<Teacher>> _futureTeachers;
   Map<String, String> userData = {};
   String avatarBase64 = '';

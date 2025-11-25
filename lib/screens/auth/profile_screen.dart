@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
-import 'package:do_an_chuyen_nganh/screens/student/student_home.dart';
+import 'package:do_an_chuyen_nganh/screens/student/khoa_hoc_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';

@@ -10,14 +10,14 @@ import '../../widgets/search_and_filter_widget.dart';
 import '../auth/login_screen.dart';
 import '../auth/profile_screen.dart';
 
-class StudentHomeScreen extends StatefulWidget {
-  const StudentHomeScreen({super.key});
+class KhoaHocListScreen extends StatefulWidget {
+  const KhoaHocListScreen({super.key});
 
   @override
-  State<StudentHomeScreen> createState() => _StudentHomeScreenState();
+  State<KhoaHocListScreen> createState() => _KhoaHocListScreenState();
 }
 
-class _StudentHomeScreenState extends State<StudentHomeScreen> {
+class _KhoaHocListScreenState extends State<KhoaHocListScreen> {
   List<KhoaHoc> listKhoaHoc = [];
   bool loading = true;
 

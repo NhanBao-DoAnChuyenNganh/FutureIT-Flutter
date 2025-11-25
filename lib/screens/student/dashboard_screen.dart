@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import '../student/student_home.dart';
+import '../student/khoa_hoc_list_screen.dart';
 import '../student/about_screen.dart';
 import '../student/tin_tuc_tuyen_dung_screen.dart';
 import '../student/danh_sach_quan_tam_screen.dart';
@@ -16,11 +16,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    StudentHomeScreen(),
+    KhoaHocListScreen(),
     AboutScreen(),
     TinTucScreen(),
     DanhSachQuanTamScreen(),
-    TeacherScreen(),
+    TeacherListScreen(),
   ];
 
   @override
