@@ -1,4 +1,5 @@
 
+import 'package:do_an_chuyen_nganh/screens/student/student_home_screen.dart';
 import 'package:flutter/material.dart';
 import '../student/khoa_hoc_list_screen.dart';
 import '../student/about_screen.dart';
@@ -16,8 +17,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    KhoaHocListScreen(),
+    StudentHomeScreen(),
     AboutScreen(),
+    KhoaHocListScreen(),
     TinTucScreen(),
     DanhSachQuanTamScreen(),
     TeacherListScreen(),
@@ -45,6 +47,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.info_outline),
             label: 'Về chúng tôi',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Khóa học',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.work_outline),

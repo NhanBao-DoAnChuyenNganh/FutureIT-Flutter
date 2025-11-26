@@ -127,6 +127,15 @@ class _AboutScreenState extends State<AboutScreen> {
               ],
             ),
             const SizedBox(height: 40),
+
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(
+                'lib/image/KH2c.png',
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
           ],
         ),
       ),
