@@ -49,7 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             label: 'Về chúng tôi',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: Icon(Icons.school),
             label: 'Khóa học',
           ),
           BottomNavigationBarItem(

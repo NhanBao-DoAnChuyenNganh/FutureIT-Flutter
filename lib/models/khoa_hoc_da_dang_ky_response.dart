@@ -63,7 +63,7 @@ class KhoaHocDangHoc {
   final DateTime ngayKhaiGiang;
   final DateTime ngayKetThuc;
   final String phongHoc;
-  final String hinhAnh;
+  final String ngayHoc; // mới: "Sáng 2,4,6"
 
   KhoaHocDangHoc({
     required this.maLopHoc,
@@ -71,7 +71,7 @@ class KhoaHocDangHoc {
     required this.ngayKhaiGiang,
     required this.ngayKetThuc,
     required this.phongHoc,
-    required this.hinhAnh,
+    required this.ngayHoc,
   });
 
   factory KhoaHocDangHoc.fromJson(Map<String, dynamic> json) {
@@ -81,7 +81,7 @@ class KhoaHocDangHoc {
       ngayKhaiGiang: DateTime.parse(json['ngayKhaiGiang']),
       ngayKetThuc: DateTime.parse(json['ngayKetThuc']),
       phongHoc: json['phongHoc'],
-      hinhAnh: json['hinhAnh'],
+      ngayHoc: json['ngayHoc'], // lấy trực tiếp từ API
     );
   }
 }
