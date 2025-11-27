@@ -1,8 +1,12 @@
 import 'package:do_an_chuyen_nganh/models/student_home_data.dart';
+import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
+import 'package:do_an_chuyen_nganh/services/auth_service.dart';
 import 'package:do_an_chuyen_nganh/services/student_home_service.dart';
+import 'package:do_an_chuyen_nganh/widgets/user_header_widget.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class StudentHomeScreen extends StatefulWidget {
   const StudentHomeScreen({Key? key}) : super(key: key);
@@ -15,7 +19,9 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   int _currentCarouselIndex = 0;
   final PageController _pageController = PageController();
   Timer? _timer;
-
+  Map<String, String> userData = {};
+  String avatarBase64 = '';
+  bool isLoggedIn = false;
   final List<String> carouselImages = [
     'lib/image/banner1.png',
     'lib/image/banner2.png',
@@ -70,12 +76,39 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     homeData = await StudentHomeService().getHomeData();
     setState(() => isLoading = false);
   }
+  Future<void> _loadUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    isLoggedIn = token != null && token.isNotEmpty;
+
+    userData = {
+      'username': prefs.getString('username') ?? '',
+      'email': prefs.getString('email') ?? '',
+      'sdt': prefs.getString('sdt') ?? '',
+      'diaChi': prefs.getString('diaChi') ?? '',
+      'avatarBase64': prefs.getString('avatarBase64') ?? '',
+    };
+
+    avatarBase64 = userData['avatarBase64'] ?? '';
+
+    setState(() {});
+  }
+  Future<void> _logout() async {
+    await AuthService.logout();
+    if (context.mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+            (route) => false,
+      );
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _startAutoPlay();
     loadHomeData();
+    _loadUser();
   }
 
   void _startAutoPlay() {
@@ -108,18 +141,15 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.blue.shade800,
         elevation: 4,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'FutureIT',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-              ),
-            ),
-          ],
+
+        title: UserAppBarWidget(
+          isLoggedIn: isLoggedIn,
+          username: userData['username'] ?? '',
+          email: userData['email'] ?? '',
+          sdt: userData['sdt'] ?? '',
+          diaChi: userData['diaChi'] ?? '',
+          avatarBase64: avatarBase64,
+          onLogout: _logout,
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),

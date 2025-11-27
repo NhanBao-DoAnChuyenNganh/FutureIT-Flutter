@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:do_an_chuyen_nganh/screens/student/danh_sach_quan_tam_screen.dart';
 import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
 import 'package:do_an_chuyen_nganh/screens/student/student_home_screen.dart';
 import 'package:flutter/material.dart';
@@ -136,6 +137,9 @@ class _KhoaHocListScreenState extends State<KhoaHocListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.blue.shade800,
+        elevation: 4,
+        iconTheme: const IconThemeData(color: Colors.white),
         title: UserAppBarWidget(
           isLoggedIn: isLoggedIn,           // 🔥 Truyền trạng thái đăng nhập
           username: userData['username'] ?? '',
@@ -153,6 +157,16 @@ class _KhoaHocListScreenState extends State<KhoaHocListScreen> {
             onSearchPressed: _searchOrFilter,
             typeFilter: typeFilter,
             onTypeSelected: (val) {
+              if (val == 'goQuanTam') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const DanhSachQuanTamScreen(),
+                  ),
+                );
+                return;
+              }
+              // xử lý filter loại
               setState(() => typeFilter = val);
               _searchOrFilter();
             },

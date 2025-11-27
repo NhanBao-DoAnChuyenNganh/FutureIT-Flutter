@@ -1,8 +1,8 @@
 class KhoaHocDaDangKyResponse {
-  final List<KhoaHocDaDangKy> listPhieuDangKy; // Chờ xếp lớp
-  final List<KhoaHocDangHoc> listDangHoc;      // Đang học
-  final List<KhoaHocDaHoc> listDaHoc;          // Đã học
-  final List<KhoaHocConNo> listConNo;          // Chưa thanh toán hết
+  final List<KhoaHocDaDangKy> listPhieuDangKy;
+  final List<KhoaHocDangHoc> listDangHoc;
+  final List<KhoaHocDaHoc> listDaHoc;
+  final List<KhoaHocConNo> listConNo;
 
   KhoaHocDaDangKyResponse({
     required this.listPhieuDangKy,
@@ -27,7 +27,17 @@ class KhoaHocDaDangKyResponse {
           .toList(),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'listPhieuDangKy': listPhieuDangKy.map((e) => e.toJson()).toList(),
+      'listDangHoc': listDangHoc.map((e) => e.toJson()).toList(),
+      'listDaHoc': listDaHoc.map((e) => e.toJson()).toList(),
+      'listConNo': listConNo.map((e) => e.toJson()).toList(),
+    };
+  }
 }
+
 
 // ------------------ Chờ xếp lớp ------------------
 class KhoaHocDaDangKy {
@@ -53,6 +63,15 @@ class KhoaHocDaDangKy {
       trangThaiThanhToan: json['trangThaiThanhToan'],
       hinhAnh: json['hinhAnh'],
     );
+  }
+  Map<String, dynamic> toJson() {
+    return {
+      'maKhoaHoc': maKhoaHoc,
+      'tenKhoaHoc': tenKhoaHoc,
+      'trangThaiDangKy': trangThaiDangKy,
+      'trangThaiThanhToan': trangThaiThanhToan,
+      'hinhAnh': hinhAnh,
+    };
   }
 }
 
@@ -83,6 +102,16 @@ class KhoaHocDangHoc {
       phongHoc: json['phongHoc'],
       ngayHoc: json['ngayHoc'], // lấy trực tiếp từ API
     );
+  }
+  Map<String, dynamic> toJson() {
+    return {
+      'maLopHoc': maLopHoc,
+      'tenKhoaHoc': tenKhoaHoc,
+      'ngayKhaiGiang': ngayKhaiGiang.toIso8601String(),
+      'ngayKetThuc': ngayKetThuc.toIso8601String(),
+      'phongHoc': phongHoc,
+      'ngayHoc': ngayHoc,
+    };
   }
 }
 
@@ -117,6 +146,17 @@ class KhoaHocDaHoc {
       diemTongKet: json['diemTongKet'] != null ? (json['diemTongKet'] as num).toDouble() : null,
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      'maLopHoc': maLopHoc,
+      'tenKhoaHoc': tenKhoaHoc,
+      'ngayKhaiGiang': ngayKhaiGiang.toIso8601String(),
+      'ngayKetThuc': ngayKetThuc.toIso8601String(),
+      'hinhAnh': hinhAnh,
+      'nhanXetCuaGiaoVien': nhanXetCuaGiaoVien,
+      'diemTongKet': diemTongKet,
+    };
+  }
 }
 
 // ------------------ Chưa thanh toán hết ------------------
@@ -143,5 +183,14 @@ class KhoaHocConNo {
       tienDongLan1: json['tienDongLan1'],
       hinhAnh: json['hinhAnh'],
     );
+  }
+  Map<String, dynamic> toJson() {
+    return {
+      'maKhoaHoc': maKhoaHoc,
+      'tenKhoaHoc': tenKhoaHoc,
+      'hocPhi': hocPhi,
+      'tienDongLan1': tienDongLan1,
+      'hinhAnh': hinhAnh,
+    };
   }
 }

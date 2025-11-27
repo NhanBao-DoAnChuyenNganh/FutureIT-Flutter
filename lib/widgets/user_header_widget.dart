@@ -43,7 +43,9 @@ class UserAppBarWidget extends StatelessWidget {
         // 🔹 BÊN TRÁI: Tên app
         const Text(
           "FutureIT",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 18,
+              fontWeight: FontWeight.bold,
+            color: Colors.white,),
         ),
 
         const Spacer(),
@@ -52,12 +54,13 @@ class UserAppBarWidget extends StatelessWidget {
         if (!isLoggedIn) ...[
           TextButton(
             onPressed: () {
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
               );
             },
-            child: const Text("Đăng nhập"),
+            child: const Text("Đăng nhập",
+    style: TextStyle(color: Colors.white),),
           ),
           TextButton(
             onPressed: () {
@@ -66,7 +69,8 @@ class UserAppBarWidget extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const RegisterScreen()),
               );
             },
-            child: const Text("Đăng ký"),
+            child: const Text("Đăng ký",
+              style: TextStyle(color: Colors.white),),
           ),
         ]
 

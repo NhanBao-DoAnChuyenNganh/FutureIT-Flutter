@@ -57,6 +57,9 @@ class _AboutScreenState extends State<AboutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.blue.shade800,
+        elevation: 4,
+        iconTheme: const IconThemeData(color: Colors.white),
         title: UserAppBarWidget(
           isLoggedIn: isLoggedIn,           // 🔥 Truyền trạng thái đăng nhập
           username: userData['username'] ?? '',
