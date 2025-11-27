@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
+import 'package:do_an_chuyen_nganh/screens/student/student_home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/teacher.dart';
@@ -18,7 +20,7 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
   late Future<List<Teacher>> _futureTeachers;
   Map<String, String> userData = {};
   String avatarBase64 = '';
-
+  bool isLoggedIn = false;
   @override
   void initState() {
     super.initState();
@@ -28,6 +30,8 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
 
   Future<void> _loadUser() async {
     final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    isLoggedIn = token != null && token.isNotEmpty;
     userData = {
       'username': prefs.getString('username') ?? 'Người dùng',
       'email': prefs.getString('email') ?? '',
@@ -43,7 +47,7 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
     await AuthService.logout();
     if (context.mounted) {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
             (route) => false,
       );
     }
@@ -93,7 +97,8 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: UserAppBarWidget(
-          username: userData['username'] ?? 'Người dùng',
+          isLoggedIn: isLoggedIn,           // 🔥 Truyền trạng thái đăng nhập
+          username: userData['username'] ?? '',
           email: userData['email'] ?? '',
           sdt: userData['sdt'] ?? '',
           diaChi: userData['diaChi'] ?? '',

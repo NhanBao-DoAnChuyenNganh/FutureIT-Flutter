@@ -1,3 +1,5 @@
+import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
+import 'package:do_an_chuyen_nganh/screens/student/student_home_screen.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/user_header_widget.dart';
 import '../auth/login_screen.dart';
@@ -15,7 +17,7 @@ class AboutScreen extends StatefulWidget {
 class _AboutScreenState extends State<AboutScreen> {
   Map<String, String> userData = {};
   String avatarBase64 = '';
-
+  bool isLoggedIn = false;
   @override
   void initState() {
     super.initState();
@@ -24,22 +26,28 @@ class _AboutScreenState extends State<AboutScreen> {
 
   Future<void> _loadUser() async {
     final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    isLoggedIn = token != null && token.isNotEmpty;
+
     userData = {
-      'username': prefs.getString('username') ?? 'Người dùng',
+      'username': prefs.getString('username') ?? '',
       'email': prefs.getString('email') ?? '',
       'sdt': prefs.getString('sdt') ?? '',
       'diaChi': prefs.getString('diaChi') ?? '',
       'avatarBase64': prefs.getString('avatarBase64') ?? '',
     };
+
     avatarBase64 = userData['avatarBase64'] ?? '';
+
     setState(() {});
   }
+
 
   Future<void> _logout() async {
     await AuthService.logout();
     if (context.mounted) {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
             (route) => false,
       );
     }
@@ -50,7 +58,8 @@ class _AboutScreenState extends State<AboutScreen> {
     return Scaffold(
       appBar: AppBar(
         title: UserAppBarWidget(
-          username: userData['username'] ?? 'Người dùng',
+          isLoggedIn: isLoggedIn,           // 🔥 Truyền trạng thái đăng nhập
+          username: userData['username'] ?? '',
           email: userData['email'] ?? '',
           sdt: userData['sdt'] ?? '',
           diaChi: userData['diaChi'] ?? '',

@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
+import 'package:do_an_chuyen_nganh/screens/student/student_home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/khoa_hoc.dart';
@@ -20,7 +22,7 @@ class KhoaHocListScreen extends StatefulWidget {
 class _KhoaHocListScreenState extends State<KhoaHocListScreen> {
   List<KhoaHoc> listKhoaHoc = [];
   bool loading = true;
-
+  bool isLoggedIn = false;
   // Filter / search
   String searchText = '';
   int priceFilter = 0;
@@ -73,7 +75,10 @@ class _KhoaHocListScreenState extends State<KhoaHocListScreen> {
       'avatarBase64': prefs.getString('avatarBase64') ?? '',
     };
     avatarBase64 = userData['avatarBase64'] ?? '';
-
+    // Cập nhật trạng thái đăng nhập
+    setState(() {
+      isLoggedIn = prefs.getString('username') != null;
+    });
     // ---------- LOAD CACHE TRƯỚC ----------
     final cache = await loadKhoaHocCache();
     final expired = await isKhoaHocCacheExpired();
@@ -103,7 +108,7 @@ class _KhoaHocListScreenState extends State<KhoaHocListScreen> {
     await AuthService.logout();
     if (context.mounted) {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
             (route) => false,
       );
     }
@@ -132,7 +137,8 @@ class _KhoaHocListScreenState extends State<KhoaHocListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: UserAppBarWidget(
-          username: userData['username'] ?? 'Người dùng',
+          isLoggedIn: isLoggedIn,           // 🔥 Truyền trạng thái đăng nhập
+          username: userData['username'] ?? '',
           email: userData['email'] ?? '',
           sdt: userData['sdt'] ?? '',
           diaChi: userData['diaChi'] ?? '',

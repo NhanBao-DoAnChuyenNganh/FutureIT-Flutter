@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:do_an_chuyen_nganh/screens/auth/login_screen.dart';
+import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
+import 'package:do_an_chuyen_nganh/screens/student/student_home_screen.dart';
 import 'package:do_an_chuyen_nganh/services/auth_service.dart';
 import 'package:do_an_chuyen_nganh/widgets/user_header_widget.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +22,7 @@ class _DanhSachQuanTamScreenState extends State<DanhSachQuanTamScreen> {
   bool loading = true;
   Map<String, String> userData = {};
   String avatarBase64 = '';
+  bool isLoggedIn = false;
   @override
   void initState() {
     super.initState();
@@ -29,6 +32,8 @@ class _DanhSachQuanTamScreenState extends State<DanhSachQuanTamScreen> {
 
   Future<void> _loadUser() async {
     final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    isLoggedIn = token != null && token.isNotEmpty;
     userData = {
       'username': prefs.getString('username') ?? 'Người dùng',
       'email': prefs.getString('email') ?? '',
@@ -44,7 +49,7 @@ class _DanhSachQuanTamScreenState extends State<DanhSachQuanTamScreen> {
     await AuthService.logout();
     if (context.mounted) {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
             (route) => false,
       );
     }
@@ -124,7 +129,8 @@ class _DanhSachQuanTamScreenState extends State<DanhSachQuanTamScreen> {
     return Scaffold(
       appBar: AppBar(
         title: UserAppBarWidget(
-          username: userData['username'] ?? 'Người dùng',
+          isLoggedIn: isLoggedIn,           // 🔥 Truyền trạng thái đăng nhập
+          username: userData['username'] ?? '',
           email: userData['email'] ?? '',
           sdt: userData['sdt'] ?? '',
           diaChi: userData['diaChi'] ?? '',

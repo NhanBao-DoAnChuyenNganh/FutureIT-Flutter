@@ -1,4 +1,5 @@
 
+import 'package:do_an_chuyen_nganh/screens/student/khoa_hoc_da_dang_ky_screen.dart';
 import 'package:do_an_chuyen_nganh/screens/student/student_home_screen.dart';
 import 'package:flutter/material.dart';
 import '../student/khoa_hoc_list_screen.dart';
@@ -23,6 +24,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     TinTucScreen(),
     DanhSachQuanTamScreen(),
     TeacherListScreen(),
+    KhoaHocDaDangKyScreen()
   ];
 
   @override
@@ -63,6 +65,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           BottomNavigationBarItem(
               icon: Icon(Icons.cast_for_education),
               label: 'Giáo viên'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.book),
+              label: 'Học Tập'),
         ],
       ),
     );

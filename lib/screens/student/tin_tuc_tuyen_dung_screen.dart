@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:do_an_chuyen_nganh/screens/auth/login_screen.dart';
+import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
+import 'package:do_an_chuyen_nganh/screens/student/student_home_screen.dart';
 import 'package:do_an_chuyen_nganh/services/auth_service.dart';
 import 'package:do_an_chuyen_nganh/widgets/user_header_widget.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -11,6 +13,7 @@ import '../../services/tin_tuc_service.dart';
 class TinTucScreen extends StatefulWidget {
   const TinTucScreen({super.key});
 
+
   @override
   State<TinTucScreen> createState() => _TinTucScreenState();
 }
@@ -19,7 +22,7 @@ class _TinTucScreenState extends State<TinTucScreen> {
   late Future<List<TinTucTuyenDung>> _futureTinTuc;
   Map<String, String> userData = {};
   String avatarBase64 = '';
-
+  bool isLoggedIn = false;
   Future<void> saveTinTucCache(List<TinTucTuyenDung> data) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString(
@@ -85,6 +88,8 @@ class _TinTucScreenState extends State<TinTucScreen> {
 
   Future<void> _loadUser() async {
     final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    isLoggedIn = token != null && token.isNotEmpty;
     userData = {
       'username': prefs.getString('username') ?? 'Người dùng',
       'email': prefs.getString('email') ?? '',
@@ -100,7 +105,7 @@ class _TinTucScreenState extends State<TinTucScreen> {
     await AuthService.logout();
     if (context.mounted) {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
             (route) => false,
       );
     }
@@ -112,7 +117,8 @@ class _TinTucScreenState extends State<TinTucScreen> {
     return Scaffold(
       appBar: AppBar(
         title: UserAppBarWidget(
-          username: userData['username'] ?? 'Người dùng',
+          isLoggedIn: isLoggedIn,           // 🔥 Truyền trạng thái đăng nhập
+          username: userData['username'] ?? '',
           email: userData['email'] ?? '',
           sdt: userData['sdt'] ?? '',
           diaChi: userData['diaChi'] ?? '',
