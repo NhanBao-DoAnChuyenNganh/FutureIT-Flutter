@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:do_an_chuyen_nganh/screens/auth/login_screen.dart';
+import 'package:do_an_chuyen_nganh/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -106,32 +108,112 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
       print("Lỗi tải trạng thái quan tâm: $e");
     }
   }
+  Future<bool> _checkLogin() async {
+    bool loggedIn = await AuthService.isLoggedIn();
+    if (loggedIn) return true;
+
+    // Nếu chưa đăng nhập → hiện dialog
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Thông báo'),
+        content: const Text('Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), // chỉ đóng dialog
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            },
+            child: const Text('Đăng nhập'),
+          ),
+        ],
+      ),
+    );
+
+    return false;
+  }
 
   // ---------------- TOGGLE QUAN TÂM -----------------
   Future<void> _toggleQuanTam() async {
-    final success = await KhoaHocService.toggleYeuThich(widget.maKhoaHoc);
-    if (!mounted) return;
-    if (success) {
-      setState(() {
-        daQuanTam = !daQuanTam;
-      });
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('cache_daQuanTam_${widget.maKhoaHoc}', daQuanTam);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(daQuanTam ? 'Đã quan tâm khóa học' : 'Bỏ quan tâm')),
+    // 1 Kiểm tra đăng nhập trước
+    bool loggedIn = await AuthService.isLoggedIn();
+    if (!loggedIn) {
+      // Hiện dialog
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Thông báo'),
+          content: const Text('Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Hủy'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+              },
+              child: const Text('Đăng nhập'),
+            ),
+          ],
+        ),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lỗi, vui lòng thử lại')),
-      );
+      return; // 🚫 Ngừng không cho quan tâm
     }
+
+    //  Gọi API toggle yêu thích
+    final success = await KhoaHocService.toggleYeuThich(widget.maKhoaHoc);
+
+    if (!mounted) return;
+
+    // Xử lý lỗi API
+    if (!success) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Lỗi'),
+          content: const Text('Không thể cập nhật trạng thái quan tâm.'),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    // 4 Thành công → cập nhật UI + cache
+    setState(() => daQuanTam = !daQuanTam);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('cache_daQuanTam_${widget.maKhoaHoc}', daQuanTam);
+
+    //  Hiện thông báo (SnackBar hoặc bạn muốn dialog cũng được)
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(daQuanTam ? 'Đã quan tâm khóa học' : 'Bỏ quan tâm'),
+      ),
+    );
   }
+
 
   // ---------------- GỬI ĐÁNH GIÁ -----------------
   Future<void> _sendDanhGia() async {
     if (chiTiet == null) return;
+    if (!await _checkLogin()) return;
     if (selectedStar == 0 || noiDungController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng chọn số sao và nhập nội dung')),

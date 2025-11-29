@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:do_an_chuyen_nganh/screens/auth/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../services/auth_service.dart';
@@ -144,8 +145,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             value: 'Student', child: Text('Student')),
                         DropdownMenuItem(
                             value: 'Teacher', child: Text('Teacher')),
-                        DropdownMenuItem(value: 'Staff', child: Text('Staff')),
-                        DropdownMenuItem(value: 'Admin', child: Text('Admin')),
                       ],
                       onChanged: (v) => setState(() => selectedRole = v!),
                     ),
@@ -164,7 +163,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 10),
                     TextButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => LoginScreen()),
+                        );
                       },
                       child: const Text('Đã có tài khoản? Đăng nhập'),
                     )
