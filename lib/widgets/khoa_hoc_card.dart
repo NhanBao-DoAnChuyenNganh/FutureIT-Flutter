@@ -14,84 +14,170 @@ class KhoaHocCard extends StatelessWidget {
     final fullStars = rating.floor();
     final hasHalfStar = (rating - fullStars) >= 0.5;
 
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ChiTietKhoaHocScreen(maKhoaHoc: khoaHoc.maKhoaHoc),
-                ),
-              );
-            },
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-              child: imgUrl != null && imgUrl.isNotEmpty
-                  ? Image.network(
-                imgUrl,
-                height: 100,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              )
-                  : Image.asset(
-                'assets/avatar.png',
-                height: 100,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => ChiTietKhoaHocScreen(maKhoaHoc: khoaHoc.maKhoaHoc)),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image Section
+            Stack(
               children: [
-                Text(
-                  khoaHoc.tenKhoaHoc,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  child: imgUrl != null && imgUrl.isNotEmpty
+                      ? Image.network(
+                          imgUrl,
+                          height: 110,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                        )
+                      : _buildPlaceholder(),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: List.generate(5, (i) {
-                    if (i < fullStars) return const Icon(Icons.star, color: Colors.amber, size: 16);
-                    if (i == fullStars && hasHalfStar) return const Icon(Icons.star_half, color: Colors.amber, size: 16);
-                    return const Icon(Icons.star_border, color: Colors.amber, size: 16);
-                  }),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${khoaHoc.hocPhi.toStringAsFixed(0)} VND',
-                  style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${khoaHoc.tongLuotBinhLuan ?? 0} đánh giá',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                const SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ChiTietKhoaHocScreen(maKhoaHoc: khoaHoc.maKhoaHoc),
-                      ),
-                    );
-                  },
-                  child: const Text('Xem chi tiết'),
+                // Rating Badge
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          rating.toStringAsFixed(1),
+                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
+            // Content Section
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title
+                    Text(
+                      khoaHoc.tenKhoaHoc,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: Color(0xFF1A1A2E),
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    // Stars Row
+                    Row(
+                      children: [
+                        ...List.generate(5, (i) {
+                          if (i < fullStars) return const Icon(Icons.star, color: Colors.amber, size: 14);
+                          if (i == fullStars && hasHalfStar) return const Icon(Icons.star_half, color: Colors.amber, size: 14);
+                          return Icon(Icons.star_border, color: Colors.amber.shade200, size: 14);
+                        }),
+                        const SizedBox(width: 4),
+                        Text(
+                          '(${khoaHoc.tongLuotBinhLuan ?? 0})',
+                          style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    // Price
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [const Color(0xFF1E88E5).withOpacity(0.1), const Color(0xFF7B1FA2).withOpacity(0.1)],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        _formatPrice(khoaHoc.hocPhi),
+                        style: const TextStyle(
+                          color: Color(0xFF5E35B1),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => ChiTietKhoaHocScreen(maKhoaHoc: khoaHoc.maKhoaHoc)),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF5E35B1),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('Xem chi tiết', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      height: 110,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [const Color(0xFF1E88E5).withOpacity(0.3), const Color(0xFF7B1FA2).withOpacity(0.3)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: const Icon(Icons.school, size: 40, color: Colors.white),
+    );
+  }
+
+  String _formatPrice(double price) {
+    final priceInt = price.toInt();
+    final formatted = priceInt.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
+    );
+    return '$formatted VND';
   }
 }

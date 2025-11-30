@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:do_an_chuyen_nganh/screens/auth/login_screen.dart';
+import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../services/auth_service.dart';
@@ -22,6 +23,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String selectedRole = 'Student';
   File? avatar;
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
+  bool isLoading = false;
 
   Future<void> _pickAvatar() async {
     final picker = ImagePicker();
@@ -31,6 +35,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
+
+    setState(() => isLoading = true);
 
     final result = await AuthService.register(
       hoTen: hoTen.text,
@@ -42,13 +48,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       avatarPath: avatar?.path ?? '',
     );
 
+    setState(() => isLoading = false);
+
     if (result.containsKey('error')) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('❌ ${result['error']}')),
       );
     } else {
       final bool isApproved = result['isApproved'] ?? true;
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(isApproved
@@ -59,121 +66,264 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       Navigator.pop(context, true);
     }
+  }
 
+  InputDecoration _buildInputDecoration(String label, String hint, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      prefixIcon: Icon(icon, color: const Color(0xFF1565C0)),
+      filled: true,
+      fillColor: const Color(0xFFF5F9FF),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFF1565C0), width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFD6EFFF),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Card(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20)),
-            elevation: 8,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'Tạo tài khoản mới',
-                      style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF1E88E5),
+              Color(0xFF5E35B1),
+              Color(0xFF7B1FA2),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // Back Button
+              Positioned(
+                top: 8,
+                left: 8,
+                child: IconButton(
+                  onPressed: () => Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const DashboardScreen()),
+                  ),
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(height: 20),
-                    GestureDetector(
-                      onTap: _pickAvatar,
-                      child: CircleAvatar(
-                        radius: 45,
-                        backgroundImage:
-                        avatar != null ? FileImage(avatar!) : null,
-                        child: avatar == null
-                            ? const Icon(Icons.camera_alt, size: 40)
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextFormField(
-                      controller: hoTen,
-                      decoration: const InputDecoration(labelText: 'Họ và tên'),
-                      validator: (v) => v!.isEmpty ? 'Nhập họ tên' : null,
-                    ),
-                    TextFormField(
-                      controller: email,
-                      decoration: const InputDecoration(labelText: 'Email'),
-                      validator: (v) => v!.isEmpty ? 'Nhập email' : null,
-                    ),
-                    TextFormField(
-                      controller: sdt,
-                      decoration:
-                      const InputDecoration(labelText: 'Số điện thoại'),
-                    ),
-                    TextFormField(
-                      controller: diaChi,
-                      decoration:
-                      const InputDecoration(labelText: 'Địa chỉ'),
-                    ),
-                    TextFormField(
-                      controller: password,
-                      obscureText: true,
-                      decoration:
-                      const InputDecoration(labelText: 'Mật khẩu'),
-                      validator: (v) =>
-                      v!.length < 6 ? 'Mật khẩu ít nhất 6 ký tự' : null,
-                    ),
-                    TextFormField(
-                      controller: confirmPassword,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                          labelText: 'Xác nhận mật khẩu'),
-                      validator: (v) =>
-                      v != password.text ? 'Mật khẩu không khớp' : null,
-                    ),
-                    const SizedBox(height: 10),
-                    DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(labelText: 'Chọn role'),
-                      value: selectedRole,
-                      items: const [
-                        DropdownMenuItem(
-                            value: 'Student', child: Text('Student')),
-                        DropdownMenuItem(
-                            value: 'Teacher', child: Text('Teacher')),
-                      ],
-                      onChanged: (v) => setState(() => selectedRole = v!),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _register,
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 50),
-                        backgroundColor: Colors.blue,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: const Text('Đăng ký',
-                          style: TextStyle(fontSize: 18, color: Colors.white)),
-                    ),
-                    const SizedBox(height: 10),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => LoginScreen()),
-                        );
-                      },
-                      child: const Text('Đã có tài khoản? Đăng nhập'),
-                    )
-                  ],
+                    child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+                  ),
                 ),
               ),
+              Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  child: Column(
+                    children: [
+                      // Header
+                  const Icon(Icons.person_add_rounded, size: 60, color: Colors.white),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Tạo tài khoản mới',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Điền thông tin để bắt đầu học tập',
+                    style: TextStyle(fontSize: 15, color: Colors.white.withOpacity(0.8)),
+                  ),
+                  const SizedBox(height: 30),
+                  // Form Card
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          // Avatar Picker
+                          GestureDetector(
+                            onTap: _pickAvatar,
+                            child: Stack(
+                              children: [
+                                Container(
+                                  width: 100,
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: const LinearGradient(
+                                      colors: [Color(0xFF42A5F5), Color(0xFF1565C0)],
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF1565C0).withOpacity(0.3),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: avatar != null
+                                      ? ClipOval(
+                                          child: Image.file(avatar!, fit: BoxFit.cover, width: 100, height: 100),
+                                        )
+                                      : const Icon(Icons.person, size: 50, color: Colors.white),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF1565C0),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text('Chọn ảnh đại diện', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                          const SizedBox(height: 20),
+                          // Form Fields
+                          TextFormField(
+                            controller: hoTen,
+                            decoration: _buildInputDecoration('Họ và tên', 'Nhập họ và tên', Icons.person_outline),
+                            validator: (v) => v!.isEmpty ? 'Nhập họ tên' : null,
+                          ),
+                          const SizedBox(height: 14),
+                          TextFormField(
+                            controller: email,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: _buildInputDecoration('Email', 'Nhập email', Icons.email_outlined),
+                            validator: (v) => v!.isEmpty ? 'Nhập email' : null,
+                          ),
+                          const SizedBox(height: 14),
+                          TextFormField(
+                            controller: sdt,
+                            keyboardType: TextInputType.phone,
+                            decoration: _buildInputDecoration('Số điện thoại', 'Nhập số điện thoại', Icons.phone_outlined),
+                          ),
+                          const SizedBox(height: 14),
+                          TextFormField(
+                            controller: diaChi,
+                            decoration: _buildInputDecoration('Địa chỉ', 'Nhập địa chỉ', Icons.location_on_outlined),
+                          ),
+                          const SizedBox(height: 14),
+                          TextFormField(
+                            controller: password,
+                            obscureText: _obscurePassword,
+                            decoration: _buildInputDecoration('Mật khẩu', 'Nhập mật khẩu', Icons.lock_outline).copyWith(
+                              suffixIcon: IconButton(
+                                icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
+                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              ),
+                            ),
+                            validator: (v) => v!.length < 6 ? 'Mật khẩu ít nhất 6 ký tự' : null,
+                          ),
+                          const SizedBox(height: 14),
+                          TextFormField(
+                            controller: confirmPassword,
+                            obscureText: _obscureConfirm,
+                            decoration: _buildInputDecoration('Xác nhận mật khẩu', 'Nhập lại mật khẩu', Icons.lock_outline).copyWith(
+                              suffixIcon: IconButton(
+                                icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
+                                onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                              ),
+                            ),
+                            validator: (v) => v != password.text ? 'Mật khẩu không khớp' : null,
+                          ),
+                          const SizedBox(height: 14),
+                          // Role Dropdown
+                          DropdownButtonFormField<String>(
+                            decoration: _buildInputDecoration('Vai trò', '', Icons.school_outlined),
+                            value: selectedRole,
+                            items: const [
+                              DropdownMenuItem(value: 'Student', child: Text('Học viên')),
+                              DropdownMenuItem(value: 'Teacher', child: Text('Giảng viên')),
+                            ],
+                            onChanged: (v) => setState(() => selectedRole = v!),
+                          ),
+                          const SizedBox(height: 24),
+                          // Register Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: isLoading
+                                ? const Center(child: CircularProgressIndicator(color: Color(0xFF1565C0)))
+                                : ElevatedButton(
+                                    onPressed: _register,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF1565C0),
+                                      foregroundColor: Colors.white,
+                                      elevation: 4,
+                                      shadowColor: const Color(0xFF1565C0).withOpacity(0.4),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    ),
+                                    child: const Text('Đăng ký', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Login Link
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Đã có tài khoản? ', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 15)),
+                      GestureDetector(
+                        onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
+                        child: const Text(
+                          'Đăng nhập',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                            decorationColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
+          ),
+            ],
           ),
         ),
       ),

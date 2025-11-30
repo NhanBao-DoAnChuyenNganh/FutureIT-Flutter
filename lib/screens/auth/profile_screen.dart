@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
-import 'package:do_an_chuyen_nganh/screens/student/khoa_hoc_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,7 +45,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadUserData();
   }
 
-  /// 🔹 Load dữ liệu user từ SharedPreferences hoặc widget
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -59,7 +57,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  /// 🔹 Chọn avatar từ gallery
   Future<void> _pickAvatar() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
@@ -68,7 +65,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// 🔹 Cập nhật thông tin hồ sơ
   Future<void> _updateProfile() async {
     setState(() => isLoading = true);
 
@@ -100,21 +96,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
             'avatarBase64', 'data:image/png;base64,${base64Encode(bytes)}');
       }
 
-      // 🔹 Điều hướng về StudentHome sau khi lưu thành công
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const DashboardScreen()),
-              (route) => false,
+          (route) => false,
         );
       }
     }
   }
 
+  InputDecoration _buildInputDecoration(String label, IconData icon, {bool enabled = true}) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: enabled ? const Color(0xFF1565C0) : Colors.grey),
+      filled: true,
+      fillColor: enabled ? const Color(0xFFF5F9FF) : Colors.grey.shade100,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFF1565C0), width: 2),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    // 🖼️ Xử lý avatar hiển thị
     ImageProvider? avatarImage;
     if (avatarFile != null) {
       avatarImage = FileImage(avatarFile!);
@@ -125,79 +145,187 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cập nhật hồ sơ'),
-        backgroundColor: Colors.blue,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            // Avatar
-            GestureDetector(
-              onTap: _pickAvatar,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: avatarImage,
-                child: avatarImage == null
-                    ? const Icon(Icons.camera_alt, size: 40)
-                    : null,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF1E88E5), Color(0xFF5E35B1), Color(0xFF7B1FA2)],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Custom AppBar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const Expanded(
+                      child: Text(
+                        'Hồ sơ cá nhân',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(width: 48),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-
-            // Email (không chỉnh sửa)
-            TextField(
-              controller: email,
-              decoration: const InputDecoration(labelText: 'Email'),
-              enabled: false,
-            ),
-            const SizedBox(height: 10),
-
-            // Ngày đăng ký (chỉ hiển thị)
-            TextField(
-              controller: TextEditingController(text: _ngayDK ?? ''),
-              decoration: const InputDecoration(labelText: 'Ngày đăng ký'),
-              enabled: false,
-            ),
-            const SizedBox(height: 10),
-
-            // Họ và tên
-            TextField(
-              controller: hoTen,
-              decoration: const InputDecoration(labelText: 'Họ và tên'),
-            ),
-            const SizedBox(height: 10),
-
-            // Số điện thoại
-            TextField(
-              controller: sdt,
-              decoration: const InputDecoration(labelText: 'Số điện thoại'),
-            ),
-            const SizedBox(height: 10),
-
-            // Địa chỉ
-            TextField(
-              controller: diaChi,
-              decoration: const InputDecoration(labelText: 'Địa chỉ'),
-            ),
-            const SizedBox(height: 20),
-
-            // Nút lưu thay đổi
-            isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-              onPressed: _updateProfile,
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                backgroundColor: Colors.blue,
+              // Avatar Section
+              GestureDetector(
+                onTap: _pickAvatar,
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 4),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 15,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: avatarImage != null
+                            ? Image(image: avatarImage, fit: BoxFit.cover, width: 120, height: 120)
+                            : Container(
+                                color: Colors.white,
+                                child: const Icon(Icons.person, size: 60, color: Color(0xFF1565C0)),
+                              ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.camera_alt, size: 20, color: Color(0xFF1565C0)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: const Text(
-                'Lưu thay đổi',
-                style: TextStyle(color: Colors.white, fontSize: 18),
+              const SizedBox(height: 8),
+              Text(
+                hoTen.text.isNotEmpty ? hoTen.text : 'Người dùng',
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
               ),
-            ),
-          ],
+              Text(
+                email.text,
+                style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.8)),
+              ),
+              const SizedBox(height: 20),
+              // Form Section
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(32),
+                      topRight: Radius.circular(32),
+                    ),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Thông tin cá nhân',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1565C0),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Email (disabled)
+                        TextField(
+                          controller: email,
+                          enabled: false,
+                          decoration: _buildInputDecoration('Email', Icons.email_outlined, enabled: false),
+                        ),
+                        const SizedBox(height: 14),
+                        // Ngày đăng ký (disabled)
+                        TextField(
+                          controller: TextEditingController(text: _ngayDK ?? ''),
+                          enabled: false,
+                          decoration: _buildInputDecoration('Ngày đăng ký', Icons.calendar_today_outlined, enabled: false),
+                        ),
+                        const SizedBox(height: 14),
+                        // Họ và tên
+                        TextField(
+                          controller: hoTen,
+                          decoration: _buildInputDecoration('Họ và tên', Icons.person_outline),
+                        ),
+                        const SizedBox(height: 14),
+                        // Số điện thoại
+                        TextField(
+                          controller: sdt,
+                          keyboardType: TextInputType.phone,
+                          decoration: _buildInputDecoration('Số điện thoại', Icons.phone_outlined),
+                        ),
+                        const SizedBox(height: 14),
+                        // Địa chỉ
+                        TextField(
+                          controller: diaChi,
+                          decoration: _buildInputDecoration('Địa chỉ', Icons.location_on_outlined),
+                        ),
+                        const SizedBox(height: 28),
+                        // Save Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: isLoading
+                              ? const Center(child: CircularProgressIndicator(color: Color(0xFF1565C0)))
+                              : ElevatedButton.icon(
+                                  onPressed: _updateProfile,
+                                  icon: const Icon(Icons.save_rounded),
+                                  label: const Text('Lưu thay đổi', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF1565C0),
+                                    foregroundColor: Colors.white,
+                                    elevation: 4,
+                                    shadowColor: const Color(0xFF1565C0).withOpacity(0.4),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
