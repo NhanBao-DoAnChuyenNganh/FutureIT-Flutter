@@ -1,5 +1,6 @@
 import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
 import 'package:do_an_chuyen_nganh/screens/student/khoa_hoc_list_screen.dart';
+import 'package:do_an_chuyen_nganh/screens/teacher/teacher_home_screen.dart';
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../HomeScreen.dart';
@@ -78,6 +79,9 @@ class _LoginScreenState extends State<LoginScreen> {
     switch (role) {
       case 'Student':
         nextScreen = DashboardScreen();
+        break;
+      case 'Teacher':
+        nextScreen = TeacherHomeScreen();
         break;
       default:
         nextScreen = const HomeScreen();
