@@ -7,6 +7,7 @@ import '../student/tin_tuc_tuyen_dung_screen.dart';
 import '../student/teacher_list_screen.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
+import '../ai_chat_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -24,7 +25,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     KhoaHocListScreen(),
     TinTucScreen(),
     TeacherListScreen(),
-    KhoaHocDaDangKyScreen()
+    KhoaHocDaDangKyScreen(),
   ];
 
   Future<void> _onTabTapped(int index) async {
@@ -53,13 +54,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.lock_outline, color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.lock_outline,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
-            const Text('Thông báo', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Thông báo',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ],
         ),
-        content: const Text('Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.'),
+        content: const Text(
+          'Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -68,12 +78,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF5E35B1),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             child: const Text('Đăng nhập'),
           ),
@@ -86,6 +101,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AiChatScreen()),
+          );
+        },
+        backgroundColor: const Color(0xFF1E88E5),
+        child: const Icon(Icons.chat_rounded, color: Colors.white),
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
