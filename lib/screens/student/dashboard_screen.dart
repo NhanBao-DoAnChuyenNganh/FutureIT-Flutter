@@ -1,3 +1,4 @@
+import 'package:do_an_chuyen_nganh/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import '../student/khoa_hoc_da_dang_ky_screen.dart';
 import '../student/student_home_screen.dart';
@@ -49,9 +50,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1E88E5), Color(0xFF7B1FA2)],
-                ),
+                gradient: AppColors.primaryGradient,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(
@@ -84,7 +83,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF5E35B1),
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -108,7 +107,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             MaterialPageRoute(builder: (_) => const AiChatScreen()),
           );
         },
-        backgroundColor: const Color(0xFF1E88E5),
+        backgroundColor: AppColors.primaryLight,
         child: const Icon(Icons.chat_rounded, color: Colors.white),
       ),
       bottomNavigationBar: Container(
@@ -153,11 +152,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           vertical: 8,
         ),
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? const LinearGradient(
-                  colors: [Color(0xFF1E88E5), Color(0xFF7B1FA2)],
-                )
-              : null,
+          gradient: isSelected ? AppColors.primaryGradient : null,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(

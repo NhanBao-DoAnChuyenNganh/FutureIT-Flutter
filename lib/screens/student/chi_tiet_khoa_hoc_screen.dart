@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'package:do_an_chuyen_nganh/screens/auth/login_screen.dart';
 import 'package:do_an_chuyen_nganh/services/auth_service.dart';
+import 'package:do_an_chuyen_nganh/services/deep_link_service.dart';
+import 'package:do_an_chuyen_nganh/services/thanh_toan_service.dart';
+import 'package:do_an_chuyen_nganh/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/chi_tiet_khoa_hoc.dart';
 import '../../services/khoa_hoc_student_service.dart';
 
@@ -21,6 +25,7 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
   int selectedImageIndex = 0;
   int selectedStar = 0;
   bool daQuanTam = false;
+  int selectedPaymentTab = 0;
   TextEditingController noiDungController = TextEditingController();
 
   @override
@@ -28,6 +33,90 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
     super.initState();
     _loadChiTiet();
     _loadTrangThaiQuanTam();
+    _setupPaymentCallback();
+  }
+
+  void _setupPaymentCallback() {
+    DeepLinkService().onPaymentCallback = (success, message, maKhoaHoc) {
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: success ? Colors.green.shade50 : Colors.red.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    success ? Icons.check_circle : Icons.cancel,
+                    color: success ? Colors.green : Colors.red,
+                    size: 50,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  success ? 'Thanh toán thành công!' : 'Thanh toán thất bại',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: success ? Colors.green.shade700 : Colors.red.shade700,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  message,
+                  style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Cảm ơn bạn! Chúng tôi sẽ xác nhận thanh toán trong ít phút.'),
+                            backgroundColor: Colors.green,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                        _loadChiTiet();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: success ? Colors.green : AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('OK', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    };
+  }
+
+  @override
+  void dispose() {
+    DeepLinkService().onPaymentCallback = null;
+    noiDungController.dispose();
+    super.dispose();
   }
 
   Future<void> saveChiTietCache(ChiTietKhoaHoc data) async {
@@ -103,7 +192,7 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF1E88E5), Color(0xFF7B1FA2)]),
+                gradient: const LinearGradient(colors: [AppColors.primaryLight, AppColors.primary]),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.lock_outline, color: Colors.white, size: 20),
@@ -124,7 +213,7 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF5E35B1),
+              backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             child: const Text('Đăng nhập', style: TextStyle(color: Colors.white)),
@@ -143,8 +232,8 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
     await prefs.setBool('cache_daQuanTam_${widget.maKhoaHoc}', daQuanTam);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(daQuanTam ? '❤️ Đã thêm vào danh sách quan tâm' : 'Đã bỏ quan tâm'),
-        backgroundColor: daQuanTam ? const Color(0xFF5E35B1) : Colors.grey,
+        content: Text(daQuanTam ? 'Đã thêm vào danh sách quan tâm' : 'Đã bỏ quan tâm'),
+        backgroundColor: daQuanTam ? AppColors.primary : Colors.grey,
       ),
     );
   }
@@ -164,7 +253,7 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(success ? '✅ Gửi đánh giá thành công' : '❌ Gửi đánh giá thất bại')),
+      SnackBar(content: Text(success ? 'Gửi đánh giá thành công' : 'Gửi đánh giá thất bại')),
     );
     if (success) {
       noiDungController.clear();
@@ -179,188 +268,545 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: loading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF5E35B1)))
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : chiTiet == null
-              ? const Center(child: Text("Không tìm thấy khóa học"))
-              : CustomScrollView(
-                  slivers: [
-                    // App Bar with Image
-                    SliverAppBar(
-                      expandedHeight: 300,
-                      pinned: true,
-                      flexibleSpace: FlexibleSpaceBar(
-                        background: chiTiet!.hinhAnh.isNotEmpty
-                            ? Image.network(chiTiet!.hinhAnh[selectedImageIndex], fit: BoxFit.cover)
-                            : Container(
-                                decoration: const BoxDecoration(
-                                  gradient: LinearGradient(colors: [Color(0xFF1E88E5), Color(0xFF7B1FA2)]),
-                                ),
-                              ),
-                      ),
-                      leading: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: CircleAvatar(
-                          backgroundColor: Colors.black.withOpacity(0.3),
-                          child: IconButton(
-                            icon: const Icon(Icons.arrow_back, color: Colors.white),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ),
-                      ),
-                      actions: [
-                        Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: CircleAvatar(
-                            backgroundColor: Colors.black.withOpacity(0.3),
-                            child: IconButton(
-                              icon: Icon(
-                                daQuanTam ? Icons.favorite : Icons.favorite_border,
-                                color: daQuanTam ? Colors.red : Colors.white,
-                              ),
-                              onPressed: _toggleQuanTam,
-                            ),
-                          ),
-                        ),
-                      ],
+          ? const Center(child: Text("Không tìm thấy khóa học"))
+          : CustomScrollView(
+        slivers: [
+          // App Bar with Image
+          SliverAppBar(
+            expandedHeight: 300,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              background: chiTiet!.hinhAnh.isNotEmpty
+                  ? Image.network(chiTiet!.hinhAnh[selectedImageIndex], fit: BoxFit.cover)
+                  : Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(colors: [AppColors.primaryLight, AppColors.primary]),
+                ),
+              ),
+            ),
+            leading: Padding(
+              padding: const EdgeInsets.all(8),
+              child: CircleAvatar(
+                backgroundColor: Colors.black.withOpacity(0.3),
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: CircleAvatar(
+                  backgroundColor: Colors.black.withOpacity(0.3),
+                  child: IconButton(
+                    icon: Icon(
+                      daQuanTam ? Icons.favorite : Icons.favorite_border,
+                      color: daQuanTam ? Colors.red : Colors.white,
                     ),
-                    // Content
-                    SliverToBoxAdapter(
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Image Thumbnails
-                            if (chiTiet!.hinhAnh.length > 1)
-                              Container(
-                                height: 80,
-                                margin: const EdgeInsets.only(top: 16),
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  itemCount: chiTiet!.hinhAnh.length,
-                                  itemBuilder: (_, index) => GestureDetector(
-                                    onTap: () => setState(() => selectedImageIndex = index),
-                                    child: Container(
-                                      margin: const EdgeInsets.only(right: 10),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: selectedImageIndex == index ? const Color(0xFF5E35B1) : Colors.transparent,
-                                          width: 3,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2)),
-                                        ],
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(10),
-                                        child: Image.network(chiTiet!.hinhAnh[index], width: 80, height: 70, fit: BoxFit.cover),
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                    onPressed: _toggleQuanTam,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // Content
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image Thumbnails
+                  if (chiTiet!.hinhAnh.length > 1)
+                    Container(
+                      height: 80,
+                      margin: const EdgeInsets.only(top: 16),
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: chiTiet!.hinhAnh.length,
+                        itemBuilder: (_, index) => GestureDetector(
+                          onTap: () => setState(() => selectedImageIndex = index),
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 10),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: selectedImageIndex == index ? AppColors.primary : Colors.transparent,
+                                width: 3,
                               ),
-                            Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Title
-                                  Text(
-                                    chiTiet!.tenKhoaHoc,
-                                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E)),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  // Info Cards
-                                  Row(
-                                    children: [
-                                      _buildInfoCard(Icons.calendar_today, 'Ngày học', chiTiet!.ngayHoc, const Color(0xFF1E88E5)),
-                                      const SizedBox(width: 12),
-                                      _buildInfoCard(Icons.access_time, 'Giờ học', '${chiTiet!.gioBatDau} - ${chiTiet!.gioKetThuc}', const Color(0xFF7B1FA2)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  // Price & Rating
-                                  Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [const Color(0xFF1E88E5).withOpacity(0.1), const Color(0xFF7B1FA2).withOpacity(0.1)],
-                                      ),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            const Text('Học phí', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              '${chiTiet!.hocPhi.toStringAsFixed(0)} VND',
-                                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF5E35B1)),
-                                            ),
-                                          ],
-                                        ),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.end,
-                                          children: [
-                                            _buildStarRating(chiTiet!.soSaoTrungBinh),
-                                            const SizedBox(height: 4),
-                                            Text('${chiTiet!.tongLuotDanhGia} đánh giá', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  // Description
-                                  const Text('Mô tả khóa học', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E))),
-                                  const SizedBox(height: 8),
-                                  Html(data: chiTiet!.moTa),
-                                  const SizedBox(height: 20),
-                                  // Favorite Button
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton.icon(
-                                      onPressed: _toggleQuanTam,
-                                      icon: Icon(daQuanTam ? Icons.favorite : Icons.favorite_border),
-                                      label: Text(daQuanTam ? 'Đã quan tâm' : 'Thêm vào danh sách quan tâm'),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: daQuanTam ? Colors.red.shade400 : const Color(0xFF5E35B1),
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(vertical: 14),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  const Divider(),
-                                  const SizedBox(height: 16),
-                                  // Review Section
-                                  _buildReviewSection(),
-                                  const SizedBox(height: 24),
-                                  const Divider(),
-                                  const SizedBox(height: 16),
-                                  // Reviews List
-                                  _buildReviewsList(),
-                                ],
-                              ),
+                              boxShadow: [
+                                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2)),
+                              ],
                             ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(chiTiet!.hinhAnh[index], width: 80, height: 70, fit: BoxFit.cover),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Title
+                        Text(
+                          chiTiet!.tenKhoaHoc,
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        ),
+                        const SizedBox(height: 16),
+                        // Info Cards
+                        Row(
+                          children: [
+                            _buildInfoCard(Icons.calendar_today, 'Ngày học', chiTiet!.ngayHoc, AppColors.primaryLight),
+                            const SizedBox(width: 12),
+                            _buildInfoCard(Icons.access_time, 'Giờ học', '${chiTiet!.gioBatDau} - ${chiTiet!.gioKetThuc}', AppColors.primary),
                           ],
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                        // Price & Rating
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [AppColors.primaryLight.withOpacity(0.1), AppColors.primary.withOpacity(0.1)],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Học phí', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${chiTiet!.hocPhi.toStringAsFixed(0)} VND',
+                                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  _buildStarRating(chiTiet!.soSaoTrungBinh),
+                                  const SizedBox(height: 4),
+                                  Text('${chiTiet!.tongLuotDanhGia} đánh giá', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Payment Methods
+                        _buildPaymentSection(),
+                        const SizedBox(height: 20),
+                        // Description
+                        const Text('Mô tả khóa học', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                        const SizedBox(height: 8),
+                        Html(data: chiTiet!.moTa),
+                        const SizedBox(height: 20),
+                        // Favorite Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _toggleQuanTam,
+                            icon: Icon(daQuanTam ? Icons.favorite : Icons.favorite_border),
+                            label: Text(daQuanTam ? 'Đã quan tâm' : 'Thêm vào danh sách quan tâm'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: daQuanTam ? Colors.red.shade400 : AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        const Divider(),
+                        const SizedBox(height: 16),
+                        // Review Section
+                        _buildReviewSection(),
+                        const SizedBox(height: 24),
+                        const Divider(),
+                        const SizedBox(height: 16),
+                        // Reviews List
+                        _buildReviewsList(),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
+
+  Widget _buildPaymentSection() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Text('Phương thức thanh toán', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          ),
+
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F7FA),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                _buildPaymentTab(0, 'Momo', const Color(0xFFD82D8B)),
+                _buildPaymentTab(1, 'ZaloPay', const Color(0xFF0068FF)),
+                _buildPaymentTab(2, 'Tiền mặt', const Color(0xFF4CAF50)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Tab Content
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: _buildPaymentContent(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentTab(int index, String label, Color color) {
+    final isSelected = selectedPaymentTab == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => selectedPaymentTab = index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? color : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              color: isSelected ? Colors.white : Colors.grey.shade600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaymentContent() {
+    switch (selectedPaymentTab) {
+      case 0: // Momo
+        return _buildMomoPayment();
+      case 1: // ZaloPay
+        return _buildZaloPayPayment();
+      case 2: // Tiền mặt
+        return _buildCashPayment();
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildMomoPayment() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [const Color(0xFFD82D8B).withOpacity(0.1), const Color(0xFFD82D8B).withOpacity(0.05)]),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: const Color(0xFFD82D8B), borderRadius: BorderRadius.circular(12)),
+                child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Thanh toán qua Momo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _handlePayment('Momo'),
+              icon: const Icon(Icons.payment),
+              label: const Text('Thanh toán Momo'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFD82D8B),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildZaloPayPayment() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [const Color(0xFF0068FF).withOpacity(0.1), const Color(0xFF0068FF).withOpacity(0.05)]),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: const Color(0xFF0068FF), borderRadius: BorderRadius.circular(12)),
+                child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Thanh toán qua ZaloPay', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _handlePayment('ZaloPay'),
+              icon: const Icon(Icons.payment),
+              label: const Text('Thanh toán ZaloPay'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0068FF),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCashPayment() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [const Color(0xFF4CAF50).withOpacity(0.1), const Color(0xFF4CAF50).withOpacity(0.05)]),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF4CAF50).withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: const Color(0xFF4CAF50), borderRadius: BorderRadius.circular(8)),
+                child: const Icon(Icons.info_outline, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              const Text('Hướng dẫn thanh toán tiền mặt', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2E7D32))),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text('Quý học viên vui lòng đến trực tiếp quầy thu ngân.', style: TextStyle(fontSize: 14, height: 1.5)),
+          const SizedBox(height: 12),
+          _buildCashInfoRow(Icons.location_on, 'Địa chỉ:', 'Lô E1, Võ Nguyên Giáp, TP. Thủ Đức, TP.HCM'),
+          const SizedBox(height: 8),
+          _buildCashInfoRow(Icons.access_time, 'Giờ làm việc:', 'Thứ 2 - Thứ 7 (8:00 - 17:00)'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCashInfoRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: const Color(0xFF4CAF50)),
+        const SizedBox(width: 8),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        const SizedBox(width: 4),
+        Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
+      ],
+    );
+  }
+
+
+  Future<void> _handlePayment(String method) async {
+    void _showLoginDialog() {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primaryLight, AppColors.primary],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.lock_outline, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              const Text('Thông báo', style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: const Text('Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Hủy', style: TextStyle(color: Colors.grey.shade600)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text('Đăng nhập'),
+            ),
+          ],
+        ),
+      );
+    }
+    if (!await _checkLogin()) {
+      _showLoginDialog();
+      return;
+    }
+    if (chiTiet == null) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Đang chuyển đến thanh toán $method...'), backgroundColor: AppColors.primary),
+    );
+
+    Map<String, dynamic> result;
+
+    if (method == 'Momo') {
+      result = await ThanhToanService.createPaymentMomo(
+        maKhoaHoc: chiTiet!.maKhoaHoc,
+        hocPhi: chiTiet!.hocPhi,
+        tenKhoaHoc: chiTiet!.tenKhoaHoc,
+        ngayHoc: chiTiet!.ngayHoc,
+      );
+    } else {
+      result = await ThanhToanService.createPaymentZaloPay(
+        maKhoaHoc: chiTiet!.maKhoaHoc,
+        hocPhi: chiTiet!.hocPhi,
+        tenKhoaHoc: chiTiet!.tenKhoaHoc,
+        ngayHoc: chiTiet!.ngayHoc,
+      );
+    }
+
+    if (!mounted) return;
+
+    if (result.containsKey('error')) {
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: '',
+        pageBuilder: (context, anim1, anim2) {
+          return Align(
+            alignment: Alignment.center,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                padding: EdgeInsets.all(20),
+                margin: EdgeInsets.symmetric(horizontal: 40),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Lỗi',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 10),
+                    Text(result['error']),
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('Đóng'),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
+      return;
+    }
+
+
+    // Lấy URL thanh toán từ response
+    final payUrl = result['deeplink'] ?? result['payUrl'];
+    if (payUrl != null && payUrl.toString().isNotEmpty) {
+      final uri = Uri.parse(payUrl.toString());
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Không thể mở trang thanh toán'), backgroundColor: Colors.red),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không nhận được link thanh toán'), backgroundColor: Colors.red),
+      );
+    }
+  }
 
   Widget _buildInfoCard(IconData icon, String title, String value, Color color) {
     return Expanded(
@@ -404,7 +850,7 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Gửi đánh giá của bạn', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E))),
+          const Text('Gửi đánh giá của bạn', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
           const SizedBox(height: 12),
           _StarInput(onSelected: (val) => selectedStar = val),
           const SizedBox(height: 12),
@@ -417,7 +863,7 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
               fillColor: Colors.white,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade200)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF5E35B1), width: 2)),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
             ),
           ),
           const SizedBox(height: 12),
@@ -428,7 +874,7 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
               icon: const Icon(Icons.send_rounded),
               label: const Text('Gửi đánh giá'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5E35B1),
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -447,7 +893,7 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
           children: [
             Icon(Icons.rate_review_outlined, size: 60, color: Colors.grey.shade300),
             const SizedBox(height: 12),
-            Text('Chưa có đánh giá nào', style: TextStyle(color: Colors.grey.shade500, fontSize: 15)),
+            Text('Khóa học chưa nhận được đánh giá nào', style: TextStyle(color: Colors.grey.shade500, fontSize: 15)),
           ],
         ),
       );
@@ -455,50 +901,50 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Đánh giá (${chiTiet!.danhGia.length})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E))),
+        Text('Đánh giá (${chiTiet!.danhGia.length})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
         const SizedBox(height: 12),
         ...chiTiet!.danhGia.map((dg) => Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF5F7FA),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F7FA),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundImage: dg.avatarBase64.isNotEmpty ? MemoryImage(base64Decode(dg.avatarBase64)) : null,
-                        backgroundColor: const Color(0xFF5E35B1).withOpacity(0.2),
-                        child: dg.avatarBase64.isEmpty ? const Icon(Icons.person, color: Color(0xFF5E35B1)) : null,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundImage: dg.avatarBase64.isNotEmpty ? MemoryImage(base64Decode(dg.avatarBase64)) : null,
+                    backgroundColor: AppColors.primary.withOpacity(0.2),
+                    child: dg.avatarBase64.isEmpty ? const Icon(Icons.person, color: AppColors.primary) : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(dg.user, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                        const SizedBox(height: 2),
+                        Row(
                           children: [
-                            Text(dg.user, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A1A2E))),
-                            const SizedBox(height: 2),
-                            Row(
-                              children: [
-                                _buildStarRating(dg.soSaoDanhGia.toDouble(), size: 14),
-                                const SizedBox(width: 8),
-                                Text(dg.ngayDanhGia, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
-                              ],
-                            ),
+                            _buildStarRating(dg.soSaoDanhGia.toDouble(), size: 14),
+                            const SizedBox(width: 8),
+                            Text(dg.ngayDanhGia, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
                           ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(dg.noiDungDanhGia, style: TextStyle(color: Colors.grey.shade700, height: 1.4)),
                 ],
               ),
-            )),
+              const SizedBox(height: 10),
+              Text(dg.noiDungDanhGia, style: TextStyle(color: Colors.grey.shade700, height: 1.4)),
+            ],
+          ),
+        )),
       ],
     );
   }

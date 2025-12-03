@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
 import 'package:do_an_chuyen_nganh/services/auth_service.dart';
+import 'package:do_an_chuyen_nganh/theme/app_theme.dart';
 import 'package:do_an_chuyen_nganh/widgets/user_header_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,8 +29,22 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     _loadUser();
-    _futureData = _loadData();
+    _futureData = _loadDataFromApi(); // Luôn gọi API mới
     currentWeekStart = getStartOfWeek(DateTime.now());
+  }
+
+  /// Gọi API trực tiếp để lấy dữ liệu mới nhất
+  Future<KhoaHocDaDangKyResponse> _loadDataFromApi() async {
+    try {
+      final apiData = await KhoaHocDaDangKyService.getKhoaHocDaDangKy();
+      await saveCache(apiData);
+      return apiData;
+    } catch (e) {
+      // Nếu lỗi API, thử load từ cache
+      final cache = await loadCache();
+      if (cache != null) return cache;
+      rethrow;
+    }
   }
 
   Future<void> _loadUser() async {
@@ -104,7 +119,7 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
               background: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF1E88E5), Color(0xFF7B1FA2)],
+                    colors: [AppColors.primaryLight, AppColors.primaryDark],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -148,7 +163,7 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
                   indicatorSize: TabBarIndicatorSize.tab,
                   dividerColor: Colors.transparent,
                   indicator: BoxDecoration(
-                    gradient: const LinearGradient(colors: [Color(0xFF7B1FA2), Color(0xFF5E35B1)]),
+                    gradient: const LinearGradient(colors: [AppColors.primaryDark, AppColors.primary]),
                     borderRadius: BorderRadius.circular(25),
                   ),
                   labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -167,7 +182,7 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
           future: _futureData,
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator(color: Color(0xFF5E35B1)));
+              return const Center(child: CircularProgressIndicator(color: AppColors.primary));
             }
             return TabBarView(
               controller: _tabController,
@@ -244,13 +259,13 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                icon: const Icon(Icons.chevron_left, color: Color(0xFF5E35B1)),
+                icon: const Icon(Icons.chevron_left, color: AppColors.primary),
                 onPressed: () => setState(() => currentWeekStart = currentWeekStart.subtract(const Duration(days: 7))),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [Color(0xFF1E88E5), Color(0xFF7B1FA2)]),
+                  gradient: const LinearGradient(colors: [AppColors.primaryLight, AppColors.primaryDark]),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -259,7 +274,7 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.chevron_right, color: Color(0xFF5E35B1)),
+                icon: const Icon(Icons.chevron_right, color: AppColors.primary),
                 onPressed: () => setState(() => currentWeekStart = currentWeekStart.add(const Duration(days: 7))),
               ),
             ],
@@ -286,10 +301,10 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [const Color(0xFF1E88E5).withOpacity(0.1), const Color(0xFF7B1FA2).withOpacity(0.1)]),
+                        gradient: LinearGradient(colors: [AppColors.primaryLight.withOpacity(0.1), AppColors.primaryDark.withOpacity(0.1)]),
                         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                       ),
-                      child: Text('Thứ $displayThu - ${day.day}/${day.month}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF5E35B1))),
+                      child: Text('Thứ $displayThu - ${day.day}/${day.month}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(12),
@@ -324,7 +339,7 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
                                 padding: const EdgeInsets.only(bottom: 6),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.circle, size: 8, color: Color(0xFF5E35B1)),
+                                    const Icon(Icons.circle, size: 8, color: AppColors.primary),
                                     const SizedBox(width: 8),
                                     Expanded(child: Text('${item.tenKhoaHoc} - Phòng: ${item.phongHoc}', style: const TextStyle(fontSize: 13))),
                                   ],
@@ -412,7 +427,7 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
                       children: [
                         _buildInfoChip(Icons.star, 'Điểm: ${item.diemTongKet ?? '-'}', Colors.amber),
                         const SizedBox(width: 8),
-                        _buildInfoChip(Icons.calendar_today, '${item.ngayKhaiGiang.day}/${item.ngayKhaiGiang.month} - ${item.ngayKetThuc.day}/${item.ngayKetThuc.month}', const Color(0xFF5E35B1)),
+                        _buildInfoChip(Icons.calendar_today, '${item.ngayKhaiGiang.day}/${item.ngayKhaiGiang.month} - ${item.ngayKetThuc.day}/${item.ngayKetThuc.month}', AppColors.primary),
                       ],
                     ),
                     if (item.nhanXetCuaGiaoVien != null && item.nhanXetCuaGiaoVien.isNotEmpty) ...[
@@ -423,7 +438,7 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.comment, size: 18, color: Color(0xFF5E35B1)),
+                            const Icon(Icons.comment, size: 18, color: AppColors.primary),
                             const SizedBox(width: 8),
                             Expanded(child: Text(item.nhanXetCuaGiaoVien, style: TextStyle(fontSize: 13, color: Colors.grey.shade700, fontStyle: FontStyle.italic))),
                           ],

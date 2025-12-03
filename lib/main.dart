@@ -2,16 +2,22 @@ import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
 import 'package:do_an_chuyen_nganh/screens/student/khoa_hoc_list_screen.dart';
 import 'package:do_an_chuyen_nganh/screens/student/student_home_screen.dart';
 import 'package:do_an_chuyen_nganh/screens/teacher/teacher_home_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:do_an_chuyen_nganh/services/deep_link_service.dart';
+import 'package:do_an_chuyen_nganh/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/HomeScreen.dart';
 import 'services/auth_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  
+  // Khởi tạo DeepLinkService để nhận callback từ Momo/ZaloPay
+  await DeepLinkService().init();
+  
   runApp(MyApp());
 }
 
@@ -41,10 +47,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Đồ án chuyên ngành',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
       home: FutureBuilder<Widget>(
         future: _getStartScreen(),
         builder: (context, snapshot) {

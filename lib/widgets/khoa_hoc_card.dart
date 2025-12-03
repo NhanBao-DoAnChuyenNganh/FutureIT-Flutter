@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/khoa_hoc.dart';
 import '../screens/student/chi_tiet_khoa_hoc_screen.dart';
+import '../theme/app_theme.dart';
 
 class KhoaHocCard extends StatelessWidget {
   final KhoaHoc khoaHoc;
@@ -87,7 +88,7 @@ class KhoaHocCard extends StatelessWidget {
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
-                        color: Color(0xFF1A1A2E),
+                        color: AppColors.textPrimary,
                         height: 1.3,
                       ),
                       maxLines: 2,
@@ -115,20 +116,20 @@ class KhoaHocCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [const Color(0xFF1E88E5).withOpacity(0.1), const Color(0xFF7B1FA2).withOpacity(0.1)],
+                          colors: [AppColors.primaryLight.withOpacity(0.1), AppColors.primaryDark.withOpacity(0.1)],
                         ),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         _formatPrice(khoaHoc.hocPhi),
                         style: const TextStyle(
-                          color: Color(0xFF5E35B1),
+                          color: AppColors.primary,
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     // Button
                     SizedBox(
                       width: double.infinity,
@@ -138,10 +139,10 @@ class KhoaHocCard extends StatelessWidget {
                           MaterialPageRoute(builder: (_) => ChiTietKhoaHocScreen(maKhoaHoc: khoaHoc.maKhoaHoc)),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF5E35B1),
+                          backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         child: const Text('Xem chi tiết', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
@@ -163,7 +164,7 @@ class KhoaHocCard extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [const Color(0xFF1E88E5).withOpacity(0.3), const Color(0xFF7B1FA2).withOpacity(0.3)],
+          colors: [AppColors.primaryLight.withOpacity(0.3), AppColors.primaryDark.withOpacity(0.3)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
