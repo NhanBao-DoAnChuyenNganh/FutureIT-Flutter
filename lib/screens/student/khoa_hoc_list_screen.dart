@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:do_an_chuyen_nganh/screens/student/danh_sach_quan_tam_screen.dart';
 import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
+import 'package:do_an_chuyen_nganh/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/khoa_hoc.dart';
@@ -123,11 +124,7 @@ class _KhoaHocListScreenState extends State<KhoaHocListScreen> {
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF1E88E5), Color(0xFF7B1FA2)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  gradient: AppColors.primaryGradient,
                 ),
                 child: SafeArea(
                   child: Padding(
@@ -160,9 +157,10 @@ class _KhoaHocListScreenState extends State<KhoaHocListScreen> {
               onLogout: _logout,
             ),
             bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(60),
+              preferredSize: const Size.fromHeight(70),
               child: Container(
                 color: Colors.transparent,
+                padding: const EdgeInsets.only(bottom: 8),
                 child: SearchAndFilterWidget(
                   searchText: searchText,
                   onSearchChanged: (val) => searchText = val,
@@ -182,7 +180,7 @@ class _KhoaHocListScreenState extends State<KhoaHocListScreen> {
           ),
         ],
         body: loading
-            ? const Center(child: CircularProgressIndicator(color: Color(0xFF5E35B1)))
+            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
             : Column(
                 children: [
                   // Price Filter Chips
@@ -222,7 +220,7 @@ class _KhoaHocListScreenState extends State<KhoaHocListScreen> {
                               crossAxisCount: 2,
                               mainAxisSpacing: 16,
                               crossAxisSpacing: 16,
-                              childAspectRatio: 0.65,
+                              childAspectRatio: 0.58,
                             ),
                             itemCount: listKhoaHoc.length,
                             itemBuilder: (context, index) => KhoaHocCard(khoaHoc: listKhoaHoc[index]),
@@ -246,14 +244,12 @@ class _KhoaHocListScreenState extends State<KhoaHocListScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            gradient: selected
-                ? const LinearGradient(colors: [Color(0xFF1E88E5), Color(0xFF7B1FA2)])
-                : null,
+            gradient: selected ? AppColors.primaryGradient : null,
             color: selected ? null : Colors.white,
             borderRadius: BorderRadius.circular(25),
             boxShadow: [
               BoxShadow(
-                color: selected ? const Color(0xFF5E35B1).withOpacity(0.3) : Colors.black.withOpacity(0.05),
+                color: selected ? AppColors.primary.withOpacity(0.3) : Colors.black.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -262,14 +258,14 @@ class _KhoaHocListScreenState extends State<KhoaHocListScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 18, color: selected ? Colors.white : const Color(0xFF5E35B1)),
+              Icon(icon, size: 18, color: selected ? Colors.white : AppColors.primary),
               const SizedBox(width: 6),
               Text(
                 text,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: selected ? Colors.white : const Color(0xFF1A1A2E),
+                  color: selected ? Colors.white : AppColors.textPrimary,
                 ),
               ),
             ],
