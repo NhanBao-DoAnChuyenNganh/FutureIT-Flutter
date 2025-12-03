@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import '../../models/chi_tiet_lop_model.dart';
 import '../../services/teacher_home_service.dart';
+import 'teacher_diem_danh_screen.dart';
 
 class TeacherClassDetailScreen extends StatefulWidget {
   final int maLop;
@@ -98,6 +99,26 @@ class _TeacherClassDetailScreenState extends State<TeacherClassDetailScreen> {
           'Chi tiết lớp học',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.checklist, color: Colors.white),
+            tooltip: 'Điểm danh',
+            onPressed: () async {
+              final data = await _futureData;
+              if (data != null && mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TeacherDiemDanhScreen(
+                      maLop: widget.maLop,
+                      tenKhoaHoc: data.lop.tenKhoaHoc,
+                    ),
+                  ),
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<ChiTietLop?>(
         future: _futureData,
@@ -146,6 +167,34 @@ class _TeacherClassDetailScreenState extends State<TeacherClassDetailScreen> {
                   ),
                   const SizedBox(height: 16),
                   _buildInfoCard(data.lop),
+                  const SizedBox(height: 16),
+                  // Nút điểm danh
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => TeacherDiemDanhScreen(
+                              maLop: widget.maLop,
+                              tenKhoaHoc: data.lop.tenKhoaHoc,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.checklist),
+                      label: const Text('Điểm danh học viên'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   const Text(
                     'Danh sách học viên',

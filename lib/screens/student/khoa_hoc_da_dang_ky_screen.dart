@@ -5,7 +5,9 @@ import 'package:do_an_chuyen_nganh/widgets/user_header_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/khoa_hoc_da_dang_ky_response.dart';
+import '../../models/trang_thai_diem_danh_model.dart';
 import '../../services/khoa_hoc_da_dang_ky_service.dart';
+import '../../services/student_diem_danh_service.dart';
 
 class KhoaHocDaDangKyScreen extends StatefulWidget {
   const KhoaHocDaDangKyScreen({super.key});
@@ -22,6 +24,8 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
   bool isLoggedIn = false;
   late Future<KhoaHocDaDangKyResponse> _futureData;
   DateTime currentWeekStart = DateTime.now();
+  Map<String, TrangThaiDiemDanh> trangThaiDiemDanh = {};
+  bool isLoadingDiemDanh = false;
 
   @override
   void initState() {
@@ -88,6 +92,38 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
   DateTime getStartOfWeek(DateTime date) {
     int offset = date.weekday == DateTime.sunday ? -6 : 1 - date.weekday;
     return date.add(Duration(days: offset));
+  }
+
+  Future<void> _loadTrangThaiDiemDanh(List<dynamic> danhSachLop) async {
+    if (danhSachLop.isEmpty) return;
+    
+    setState(() => isLoadingDiemDanh = true);
+    
+    // Chuyển đổi sang List<Map> để truyền cả thông tin ngayHoc
+    final danhSachLopMap = danhSachLop.map((item) => {
+      'maLopHoc': item.maLopHoc,
+      'ngayHoc': item.ngayHoc,
+      'ngayKhaiGiang': item.ngayKhaiGiang,
+      'ngayKetThuc': item.ngayKetThuc,
+    }).toList();
+    
+    print('Loading điểm danh cho ${danhSachLopMap.length} lớp');
+    print('Tuần bắt đầu: $currentWeekStart');
+    
+    final result = await StudentDiemDanhService.getTrangThaiDiemDanhTuan(
+      danhSachLopMap,
+      currentWeekStart,
+    );
+    
+    print('Kết quả điểm danh: ${result.length} records');
+    result.forEach((key, value) {
+      print('   - Key: $key, DaDiemDanh: ${value.daDiemDanh}, CoMat: ${value.coMat}');
+    });
+    
+    setState(() {
+      trangThaiDiemDanh = result;
+      isLoadingDiemDanh = false;
+    });
   }
 
   @override
@@ -228,6 +264,14 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
 
   Widget _buildDangHoc(List<dynamic> list) {
     if (list.isEmpty) return _buildEmptyState('Không có khóa học đang học', Icons.school_outlined);
+    
+    // Load trạng thái điểm danh khi vào tab (sau khi build xong)
+    if (trangThaiDiemDanh.isEmpty && !isLoadingDiemDanh) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadTrangThaiDiemDanh(list);
+      });
+    }
+    
     List<String> caHocList = ['Sáng', 'Chiều'];
     return Column(
       children: [
@@ -245,7 +289,10 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
             children: [
               IconButton(
                 icon: const Icon(Icons.chevron_left, color: Color(0xFF5E35B1)),
-                onPressed: () => setState(() => currentWeekStart = currentWeekStart.subtract(const Duration(days: 7))),
+                onPressed: () {
+                  setState(() => currentWeekStart = currentWeekStart.subtract(const Duration(days: 7)));
+                  _loadTrangThaiDiemDanh(list);
+                },
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -260,7 +307,10 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
               ),
               IconButton(
                 icon: const Icon(Icons.chevron_right, color: Color(0xFF5E35B1)),
-                onPressed: () => setState(() => currentWeekStart = currentWeekStart.add(const Duration(days: 7))),
+                onPressed: () {
+                  setState(() => currentWeekStart = currentWeekStart.add(const Duration(days: 7)));
+                  _loadTrangThaiDiemDanh(list);
+                },
               ),
             ],
           ),
@@ -320,16 +370,59 @@ class _KhoaHocDaDangKyScreenState extends State<KhoaHocDaDangKyScreen>
                                 child: Text(ca, style: TextStyle(fontWeight: FontWeight.w600, color: ca == 'Sáng' ? Colors.orange.shade700 : Colors.blue.shade700, fontSize: 12)),
                               ),
                               const SizedBox(height: 8),
-                              ...filtered.map((item) => Padding(
-                                padding: const EdgeInsets.only(bottom: 6),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.circle, size: 8, color: Color(0xFF5E35B1)),
-                                    const SizedBox(width: 8),
-                                    Expanded(child: Text('${item.tenKhoaHoc} - Phòng: ${item.phongHoc}', style: const TextStyle(fontSize: 13))),
-                                  ],
-                                ),
-                              )),
+                              ...filtered.map((item) {
+                                final key = '${item.maLopHoc}_${day.day}_${day.month}';
+                                final trangThai = trangThaiDiemDanh[key];
+                                final daDiemDanh = trangThai?.daDiemDanh ?? false;
+                                final coMat = trangThai?.coMat ?? false;
+                                
+                                // Debug
+                                if (trangThai != null) {
+                                  print('Tìm thấy điểm danh: $key -> CoMat: $coMat');
+                                }
+                                
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 6),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        daDiemDanh 
+                                          ? (coMat ? Icons.check_circle : Icons.cancel)
+                                          : Icons.circle,
+                                        size: daDiemDanh ? 16 : 8,
+                                        color: daDiemDanh
+                                          ? (coMat ? Colors.green : Colors.red)
+                                          : const Color(0xFF5E35B1),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          '${item.tenKhoaHoc} - Phòng: ${item.phongHoc}',
+                                          style: const TextStyle(fontSize: 13),
+                                        ),
+                                      ),
+                                      if (daDiemDanh)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: coMat 
+                                              ? Colors.green.withOpacity(0.15)
+                                              : Colors.red.withOpacity(0.15),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            coMat ? 'Có mặt' : 'Vắng',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              color: coMat ? Colors.green.shade700 : Colors.red.shade700,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              }),
                               const SizedBox(height: 8),
                             ],
                           );

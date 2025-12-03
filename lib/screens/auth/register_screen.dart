@@ -116,10 +116,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 top: 8,
                 left: 8,
                 child: IconButton(
-                  onPressed: () => Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const DashboardScreen()),
-                  ),
+                  onPressed: () {
+                    print('🔙 Back button pressed - Navigating to Dashboard');
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const DashboardScreen()),
+                      (route) => false,
+                    );
+                  },
                   icon: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
