@@ -100,7 +100,6 @@ class ThanhToanService {
     final url = Uri.parse('${baseUrl}api/PaymentApi/CreatePaymentZaloPay');
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
-    final orderId = const Uuid().v4();
 
     try {
       final response = await http.post(
@@ -110,25 +109,45 @@ class ThanhToanService {
           if (token.isNotEmpty) "Authorization": "Bearer $token",
         },
         body: jsonEncode({
-          "Amount": hocPhi.toInt().toString(),
-          "OrderId": orderId,
-          "OrderInfo": "Thanh toán học phí bằng ZaloPay",
-          "FullName": "Thanh toán ZaloPay",
-          "ExtraData": maKhoaHoc.toString(),
-          "OrderInfomation": "Đăng ký $tenKhoaHoc + $ngayHoc",
+          "MaKhoaHoc": maKhoaHoc,
+          "Amount": hocPhi.toInt(),
+          "Description": "Thanh toán khóa học $tenKhoaHoc - $ngayHoc",
         }),
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 30));
 
-      print('ZALOPAY RESPONSE: ${response.statusCode} ${response.body}');
+      print('========== ZALOPAY DEBUG ==========');
+      print('URL: $url');
+      print('Token: ${token.isNotEmpty ? "Có token" : "Không có token"}');
+      print('Status: ${response.statusCode}');
+      print('Body: ${response.body}');
+      print('====================================');
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final data = jsonDecode(response.body);
+        // ZaloPay trả về orderUrl
+        return data;
+      } else if (response.statusCode == 401) {
+        return {"error": "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại."};
+      } else if (response.statusCode == 400) {
+        try {
+          final errorData = jsonDecode(response.body);
+          return {"error": errorData['message'] ?? "Yêu cầu không hợp lệ"};
+        } catch (_) {
+          return {"error": "Yêu cầu không hợp lệ"};
+        }
+      } else if (response.statusCode == 404) {
+        return {"error": "Không tìm thấy khóa học"};
       } else {
-        return {"error": "Thanh toán thất bại: ${response.statusCode}"};
+        try {
+          final errorData = jsonDecode(response.body);
+          return {"error": errorData['message'] ?? "Thanh toán thất bại (${response.statusCode})"};
+        } catch (_) {
+          return {"error": "Thanh toán thất bại: ${response.statusCode}"};
+        }
       }
     } catch (e) {
       print('ZALOPAY ERROR: $e');
-      return {"error": "Không thể kết nối tới server: $e"};
+      return {"error": "Lỗi kết nối: $e"};
     }
   }
 }

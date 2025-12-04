@@ -157,10 +157,10 @@ class _KhoaHocListScreenState extends State<KhoaHocListScreen> {
               onLogout: _logout,
             ),
             bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(70),
+              preferredSize: const Size.fromHeight(80),
               child: Container(
                 color: Colors.transparent,
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 16),
                 child: SearchAndFilterWidget(
                   searchText: searchText,
                   onSearchChanged: (val) => searchText = val,

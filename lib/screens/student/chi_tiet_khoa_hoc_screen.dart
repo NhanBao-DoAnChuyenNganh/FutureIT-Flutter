@@ -544,17 +544,15 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: const Color(0xFFD82D8B), borderRadius: BorderRadius.circular(12)),
-                child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 24),
-              ),
+              Image.asset('lib/image/momo.png', width: 40, height: 40),
               const SizedBox(width: 12),
               const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Thanh toán qua Momo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))
+                    Text('Thanh toán qua Momo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    SizedBox(height: 4),
+                    Text('Nhanh chóng, tiện lợi', style: TextStyle(color: Colors.grey, fontSize: 13)),
                   ],
                 ),
               ),
@@ -563,16 +561,15 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
+            child: ElevatedButton(
               onPressed: () => _handlePayment('Momo'),
-              icon: const Icon(Icons.payment),
-              label: const Text('Thanh toán Momo'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFD82D8B),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
+              child: const Text('Thanh toán Momo'),
             ),
           ),
         ],
@@ -581,6 +578,9 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
   }
 
   Widget _buildZaloPayPayment() {
+    // Kiểm tra nếu học phí > 999.000 VND
+    final isOverLimit = chiTiet != null && chiTiet!.hocPhi > 999000;
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -591,37 +591,59 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: const Color(0xFF0068FF), borderRadius: BorderRadius.circular(12)),
-                child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 24),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset('lib/image/zalopay.png', width: 48, height: 48, fit: BoxFit.cover),
               ),
               const SizedBox(width: 12),
               const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Thanh toán qua ZaloPay', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))
+                    Text('Thanh toán qua ZaloPay', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    SizedBox(height: 4),
+                    Text('An toàn, bảo mật', style: TextStyle(color: Colors.grey, fontSize: 13)),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _handlePayment('ZaloPay'),
-              icon: const Icon(Icons.payment),
-              label: const Text('Thanh toán ZaloPay'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0068FF),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          if (isOverLimit)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Do trị giá khóa học > 1.000.000 VND. Vui lòng dùng phương thức thanh toán khác.',
+                      style: TextStyle(color: Colors.orange.shade700, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => _handlePayment('ZaloPay'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0068FF),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Thanh toán ZaloPay'),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -646,7 +668,7 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
                 child: const Icon(Icons.info_outline, color: Colors.white, size: 20),
               ),
               const SizedBox(width: 12),
-              const Text('Hướng dẫn thanh toán tiền mặt', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2E7D32))),
+              const Text('Thanh toán tiền mặt', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2E7D32))),
             ],
           ),
           const SizedBox(height: 16),
@@ -749,49 +771,74 @@ class _ChiTietKhoaHocScreenState extends State<ChiTietKhoaHocScreen> {
     if (!mounted) return;
 
     if (result.containsKey('error')) {
-      showGeneralDialog(
+      showDialog(
         context: context,
         barrierDismissible: true,
-        barrierLabel: '',
-        pageBuilder: (context, anim1, anim2) {
-          return Align(
-            alignment: Alignment.center,
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                padding: EdgeInsets.all(20),
-                margin: EdgeInsets.symmetric(horizontal: 40),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+        builder: (context) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon cảnh báo
+                Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.schedule, color: Colors.orange.shade700, size: 40),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Lỗi',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                const SizedBox(height: 20),
+                // Title
+                Text(
+                  'Trùng lịch học',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange.shade700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Message
+                Text(
+                  result['error'],
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.5),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                // Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange.shade600,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    SizedBox(height: 10),
-                    Text(result['error']),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text('Đóng'),
-                    )
-                  ],
+                    child: const Text('Đã hiểu', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                  ),
                 ),
-              ),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       );
       return;
     }
 
 
-    // Lấy URL thanh toán từ response
-    final payUrl = result['deeplink'] ?? result['payUrl'];
+    //URL thanh toán từ response
+    String? payUrl;
+    if (method == 'Momo') {
+      payUrl = result['deeplink'] ?? result['payUrl'];
+    } else {
+      payUrl = result['orderUrl'] ?? result['deeplink'];
+    }
+    
     if (payUrl != null && payUrl.toString().isNotEmpty) {
       final uri = Uri.parse(payUrl.toString());
       if (await canLaunchUrl(uri)) {
