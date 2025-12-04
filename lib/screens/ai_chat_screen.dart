@@ -1,3 +1,4 @@
+import 'package:do_an_chuyen_nganh/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/chat_message.dart';
@@ -41,7 +42,6 @@ class _AiChatScreenState extends State<AiChatScreen> {
     final message = _messageController.text.trim();
     if (message.isEmpty) return;
 
-    // Thêm tin nhắn của người dùng
     final userMessage = ChatMessage(
       id: const Uuid().v4(),
       content: message,
@@ -58,7 +58,6 @@ class _AiChatScreenState extends State<AiChatScreen> {
     _scrollToBottom();
 
     try {
-      // Gọi API AI
       final reply = await _aiService.askAi(message);
 
       final aiMessage = ChatMessage(

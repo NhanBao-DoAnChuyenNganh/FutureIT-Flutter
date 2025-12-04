@@ -1,4 +1,6 @@
 import 'package:do_an_chuyen_nganh/screens/teacher/teacher_class_detail_screen.dart';
+import 'package:do_an_chuyen_nganh/screens/teacher/teacher_diem_danh_screen.dart';
+import 'package:do_an_chuyen_nganh/screens/student/dashboard_screen.dart';
 import 'package:do_an_chuyen_nganh/services/auth_service.dart';
 import 'package:do_an_chuyen_nganh/widgets/user_header_widget.dart';
 import 'package:flutter/material.dart';
@@ -62,8 +64,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen>
     if (context.mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (_) =>
-              const SizedBox(), // TODO: Replace with DashboardScreen
+          builder: (_) => const DashboardScreen(),
         ),
         (route) => false,
       );
@@ -196,6 +197,49 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen>
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) => TeacherClassDetailScreen(maLop: item.maLopHoc),
+                                      ),
+                                    );
+                                  },
+                                  onLongPress: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      builder: (context) => Container(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            ListTile(
+                                              leading: const Icon(Icons.info, color: Colors.blue),
+                                              title: const Text('Xem chi tiết lớp'),
+                                              onTap: () {
+                                                Navigator.pop(context);
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) => TeacherClassDetailScreen(maLop: item.maLopHoc),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                            ListTile(
+                                              leading: const Icon(Icons.checklist, color: Colors.green),
+                                              title: const Text('Điểm danh'),
+                                              onTap: () {
+                                                Navigator.pop(context);
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) => TeacherDiemDanhScreen(
+                                                      maLop: item.maLopHoc,
+                                                      tenKhoaHoc: item.tenKhoaHoc,
+                                                      ngayDiemDanh: day,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     );
                                   },

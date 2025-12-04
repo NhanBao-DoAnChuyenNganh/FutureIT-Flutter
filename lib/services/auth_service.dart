@@ -109,7 +109,7 @@ class AuthService {
     }
   }
 
-  /// 🔴 Cập nhật hồ sơ
+  /// Cập nhật hồ sơ
   static Future<Map<String, dynamic>> updateProfile({
     required String email,
     required String hoTen,
@@ -155,37 +155,37 @@ class AuthService {
     }
   }
 
-  /// 🚪 Đăng xuất
+  /// Đăng xuất
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }
 
-  /// 🔹 Kiểm tra đăng nhập
+  /// Kiểm tra đăng nhập
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.containsKey('token');
   }
 
-  /// 🔹 Lấy role hiện tại
+  /// Lấy role hiện tại
   static Future<String?> getRole() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('role');
   }
 
-  /// 🔹 Lấy username
+  /// Lấy username
   static Future<String?> getUsername() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('username');
   }
 
-  /// 🔹 Lấy email
+  /// Lấy email
   static Future<String?> getEmail() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('email');
   }
 
-  /// 🔹 Lấy avatar base64
+  /// Lấy avatar base64
   static Future<String?> getAvatar() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('avatarBase64');

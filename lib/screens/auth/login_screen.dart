@@ -114,9 +114,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 top: 8,
                 left: 8,
                 child: IconButton(
-                  onPressed: () => Navigator.pushReplacement(
+                  onPressed: () => Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (_) => const DashboardScreen()),
+                    (route) => false,
                   ),
                   icon: Container(
                     padding: const EdgeInsets.all(8),
