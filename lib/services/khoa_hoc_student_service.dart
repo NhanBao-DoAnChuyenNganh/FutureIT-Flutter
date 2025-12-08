@@ -8,26 +8,18 @@ import '../models/teacher.dart';
 class KhoaHocService {
   static Future<List<KhoaHoc>> getAllKhoaHoc() async {
     final url = Uri.parse('${AuthService.baseUrl}api/StudentHomeApi/GetKhoaHoc');
-
-    print('🔹 Calling API: $url'); // Debug URL
-
     final response = await http.get(url, headers: {
       "Content-Type": "application/json",
-      // Nếu có token:
-      // "Authorization": "Bearer ${await AuthService.getToken()}",
     });
-
-    print('🔹 Status code: ${response.statusCode}'); // Debug status code
-    print('🔹 Response body: ${response.body}'); // Debug body
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body) as List<dynamic>;
-      print('🔹 Received ${data.length} items \n'); // Debug số item
       return data.map((e) => KhoaHoc.fromJson(e)).toList();
     } else {
       throw Exception('Failed to load KhoaHoc');
     }
   }
+
+
   static Future<List<KhoaHoc>> searchOrFilter({String? ten, String? tenLoai}) async {
     // Debug giá trị input
     print('🔹 SearchOrFilter called with ten="$ten", tenLoai="$tenLoai"');
